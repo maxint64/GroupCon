@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="../css/bootstrap.css" />
+        <script type="text/javascript" src="../js/jquery.js"></script>
+        <script type="text/javascript" src="../js/bootstrap.js"></script>
+        <script type="text/javascript" src="../js/options.js"></script>
+    </head>
+    <body> 
+        <div class="row" style="margin-top:100px">
+            <div class="span9">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a href="#topic">话题</a></li>
+                    <li><a href="#key">关键词</a></li>
+                    <li><a href="#cog">设置</a></li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane active row" id="topic">
+                        <div class="span8">
+                            <h3>屏蔽话题</h3>
+                            <div class="input-append">
+                                <input class="span7" id="appendedInputButton" type="text" placeholder="输入想要屏蔽的话题链接...">
+                                <button class="btn" type="button" style="width:80px">添加</button>
+                            </div>
+                            <table class="table table-bordered table-hover" id="del">
+                                <thead><tr><th>话题</th><th>URL</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                            <hr />
+                            <h3>置顶话题</h3>
+                            <div class="input-append">
+                                <input class="span7" id="appendedInputButton" type="text" placeholder="输入想要置顶的话题链接...">
+                                <button class="btn" type="button" style="width:80px">添加</button>
+                            </div>
+                            <table class="table table-bordered table-hover" id="top">
+                                <thead><tr><th>话题</th><th>URL</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane row" id="key">
+                        <div class="span8">
+                            <h3>屏蔽关键词</h3>
+                            <div class="input-append">
+                                <input class="span7" id="appendedInputButton" type="text" placeholder="输入想要屏蔽的关键词,多个关键词之间请使用空格分割...">
+                                <button class="btn" type="button" style="width:80px">添加</button>
+                            </div>
+                        </div>
+                        <div class="span8" id="keyfield">
+                        </div>
+                    </div>
+                    <div class="tab-pane row" id="cog">
+                        <div class="span8">
+                            <h1>cog</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
