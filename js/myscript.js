@@ -44,10 +44,6 @@ $(document).ready(function(){
 		}
 	}
 	
-	var del_ = function(e) {
-		e.remove();
-	}
-	
 	var add_to_del = function() {
         chrome.extension.sendMessage({
             cmd: "append", 
@@ -71,6 +67,36 @@ $(document).ready(function(){
         });
 	}
 
+    var initTop = function() {
+        var tr = "<tr class='pl'><td class='td-subject'></td><td class='td-reply' nowrap='nowrap'></td><td class='td-time'></td><td></td></tr>";
+        var len = local.top_url.length;
+        for (i = 0; i < len; i++ ) {
+            chrome.extension.sendMessage({cmd: "query", topic_url: local.top_url[i]}, function(info) {
+                if (!! info) {
+                    var new_tr = $(tr); 
+                    var a = $("a");
+                    a.attr("href", local.top_url[i]);
+                    a.attr("title", local.top_topic[i]);
+                    a.text(local.top_topic[i]);
+                    new_tr.find(".td-subject").append(a);
+                    new_tr.find(".td-reply").append(info.reply_num + "回应");
+                    new_tr.find(".td-time").attr("title", info.last_reply);
+                    new_tr.find(".td-time").text(info.last_reply_ex);
+                    a = $("a");
+                    a.attr("href", info.group_url);
+                    a.text(info.group_name);
+                    new_tr.find("td:last").append(a);
+                    console.log(new_tr.html());
+                    debugger;
+                    top_(new_tr);
+                }
+                else {
+                    console.log("TOPIC INFO NOT FOUND");
+                }
+            });
+        }
+    };
+
     var local = {};
 
     var init = function() {
@@ -81,20 +107,20 @@ $(document).ready(function(){
 
         chrome.extension.sendMessage({cmd: "all"}, function(data) {
             local = data;
+
             $($("td.td-subject a").get().reverse()).each(function() {
                 href = $(this).attr("href");
-                if (data.del_url.indexOf(href) >= 0) {
-                    del_($(this).parent().parent());
-                    return ;
-                }
-                else if (data.top_url.indexOf(href) >= 0) {
-                    top_($(this).parent().parent());
-                }
+                if (data.del_url.indexOf(href) >= 0 || data.top_url.indexOf(href) >= 0)
+                    $(this).parent().parent().remove();
+            });
+
+            initTop();
+
+            $("td.td-subject a").each(function() {
                 $(this).before("<input name='trashes' type='checkbox' /> ");
             });
         });
 
-        
         $(".dropdown-menu li a").click(function() {
             select($(this).attr("tabindex"));
         });
@@ -103,7 +129,7 @@ $(document).ready(function(){
             $(":checked[name='trashes']").each(function() {
                 local.del_url.push($(this).next("a").attr("href"));
                 local.del_topic.push($(this).next("a").attr("title"));
-                del_($(this).parent().parent());
+                $(this).parent().parent().remove();
             });
             add_to_del();
         });
@@ -120,11 +146,14 @@ $(document).ready(function(){
         
         $("button#cog").click(function() {
             //window.open(chrome.extension.getURL("html/options.html"));
-            //chrome.extension.sendMessage({cmd: "remove"});
-            chrome.extension.sendMessage({
-                cmd: "query",
-                topic_url: "http://www.douban.com/group/topic/39881257/"
-            });
+            chrome.extension.sendMessage({cmd: "remove"});
+            //chrome.extension.sendMessage({
+            //    cmd: "query",
+            //    topic_url: "http://www.douban.com/group/topic/14753859/",
+            //},
+            //function(data) {
+            //    console.log(data);
+            //});
         });
     };
 
