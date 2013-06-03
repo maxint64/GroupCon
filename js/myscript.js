@@ -44,12 +44,12 @@ $(document).ready(function(){
 		}
 	}
 	
-	var add_to_del = function() {
+	var add_to_del = function(url, topic) {
         chrome.extension.sendMessage({
             cmd: "append", 
             type: "del", 
-            del_url: local.del_url, 
-            del_topic: local.del_topic
+            del_url: url, 
+            del_topic: topic
         });
 	}
 	
@@ -58,43 +58,43 @@ $(document).ready(function(){
 		$("tr.pl:first").after(e);
     }
 	
-	var add_to_top = function(e) {
+	var add_to_top = function(url, topic) {
         chrome.extension.sendMessage({
             cmd: "append",
             type: "top",
-            top_url: local.top_url,
-            top_topic: local.top_topic
+            top_url: url,
+            top_topic: topic
         });
 	}
 
     var initTop = function() {
-        var tr = "<tr class='pl'><td class='td-subject'></td><td class='td-reply' nowrap='nowrap'></td><td class='td-time'></td><td></td></tr>";
-        var len = local.top_url.length;
-        for (i = 0; i < len; i++ ) {
-            chrome.extension.sendMessage({cmd: "query", topic_url: local.top_url[i]}, function(info) {
+        chrome.extension.sendMessage({cmd: "query", topic_url: local.top_url}, function(data) {
+            var tr = "<tr class='pl'><td class='td-subject'></td><td class='td-reply' nowrap='nowrap'></td><td class='td-time'></td><td></td></tr>";
+            for (index in data) {
+                var info = data[index];
                 if (!! info) {
                     var new_tr = $(tr); 
-                    var a = $("a");
-                    a.attr("href", local.top_url[i]);
-                    a.attr("title", local.top_topic[i]);
-                    a.text(local.top_topic[i]);
+                    var a = $("<a></a>");
+                    a.attr("href", info.url);
+                    a.attr("title", info.topic);
+                    a.text(info.topic);
                     new_tr.find(".td-subject").append(a);
-                    new_tr.find(".td-reply").append(info.reply_num + "回应");
+                    a.before("<input name='trashes' type='checkbox' />");
+                    new_tr.find(".td-reply").text(info.reply_num + "回应");
                     new_tr.find(".td-time").attr("title", info.last_reply);
                     new_tr.find(".td-time").text(info.last_reply_ex);
-                    a = $("a");
+                    a = $("<a></a>");
                     a.attr("href", info.group_url);
                     a.text(info.group_name);
                     new_tr.find("td:last").append(a);
-                    console.log(new_tr.html());
-                    debugger;
                     top_(new_tr);
+                    debugger;
                 }
                 else {
                     console.log("TOPIC INFO NOT FOUND");
                 }
-            });
-        }
+            }
+        });
     };
 
     var local = {};
@@ -115,10 +115,10 @@ $(document).ready(function(){
             });
 
             initTop();
+        });
 
-            $("td.td-subject a").each(function() {
-                $(this).before("<input name='trashes' type='checkbox' /> ");
-            });
+        $("td.td-subject a").each(function() {
+            $(this).before("<input name='trashes' type='checkbox' /> ");
         });
 
         $(".dropdown-menu li a").click(function() {
@@ -126,22 +126,38 @@ $(document).ready(function(){
         });
         
         $("button#del").click(function() {
+            var tmp_url = [];
+            var tmp_topic = [];
             $(":checked[name='trashes']").each(function() {
-                local.del_url.push($(this).next("a").attr("href"));
-                local.del_topic.push($(this).next("a").attr("title"));
+                var url = $(this).next("a").attr("href");
+                var topic = $(this).next("a").attr("title");
+                if (local.del_url.indexOf(url) < 0) {
+                    local.del_url.push(url);
+                    local.del_topic.push(topic);
+                    tmp_url.push(url);
+                    tmp_url.push(topic);
+                }
                 $(this).parent().parent().remove();
             });
-            add_to_del();
+            add_to_del(tmp_url, tmp_topic);
         });
         
         $("button#top").click(function() {
+            var tmp_url = [];
+            var tmp_topic = [];
             $($(":checked[name='trashes']").get().reverse()).each(function() {
-                local.top_url.push($(this).next("a").attr("href"));
-                local.top_topic.push($(this).next("a").attr("title"));
+                var url = $(this).next("a").attr("href");
+                var topic = $(this).next("a").attr("title");
+                if (local.top_url.indexOf(url) < 0) {
+                    local.top_url.push(url);
+                    local.top_topic.push(topic);
+                    tmp_url.push(url);
+                    tmp_topic.push(url);
+                }
                 top_($(this).parent().parent());
                 $(this).removeAttr("checked");
             });
-            add_to_top();
+            add_to_top(tmp_url, tmp_topic);
         });
         
         $("button#cog").click(function() {

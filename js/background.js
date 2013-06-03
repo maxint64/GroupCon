@@ -57,48 +57,55 @@ calcTime = function(str) {
     }
 };
 
-getTopicInfo = function(url) {
-    var html = getHtml(url);
+getTopicInfo = function(topic_url) {
+    var result = [];
+    for (index in topic_url) {
+        var url = topic_url[index];
+        var html = getHtml(url);
 
-    //GHOST BUG: 之前这里总是报错，在stackoverflow上看到说jQuery不能解析有<head>标签的html,
-    //所以把<body>中的内容取出放在<div>中，但后来又发现就算不这样做也不会报错
-    //html = "<div>" + html.replace(/^[\s\S]*<body.*?>|<\/body>[\s\S]*$/g, '') + "</div>";
+        //GHOST BUG: 之前这里总是报错，在stackoverflow上看到说jQuery不能解析有<head>标签的html,
+        //所以把<body>中的内容取出放在<div>中，但后来又发现就算不这样做也不会报错
+        //html = "<div>" + html.replace(/^[\s\S]*<body.*?>|<\/body>[\s\S]*$/g, '') + "</div>";
 
-    if (!! html) {
-        var info = {};
-        var t = $(html);
-        info.group_name = t.find(".group-item .title a").text();
-        info.group_url = t.find(".group-item .title a").attr("href");
-        var page_num = 1;
-        //如果有分页则用最后一页的html替换之前的
-        if (!! t.find(".paginator").size()) {
-            page_num = t.find(".paginator>a:last").text();
-            url += "?start=" + (page_num-1)*100; 
-            html = getHtml(url);
-            if (!! html) {
-                t = $(html);
-            }
-            else {
-                if (DEBUG) {
-                    console.log(url + "NOT FOUND");
-                    console.log(html);
+        if (!! html) {
+            var info = {};
+            var t = $(html);
+            info.url = url;
+            info.topic = $.trim(t.find("h1").text());
+            info.group_name = t.find(".group-item .title a").text();
+            info.group_url = t.find(".group-item .title a").attr("href");
+            var page_num = 1;
+            //如果有分页则用最后一页的html替换之前的
+            if (!! t.find(".paginator").size()) {
+                page_num = t.find(".paginator>a:last").text();
+                url += "?start=" + (page_num-1)*100; 
+                html = getHtml(url);
+                if (!! html) {
+                    t = $(html);
                 }
-                return 0;
+                else {
+                    if (DEBUG) {
+                        console.log(url + "NOT FOUND");
+                        console.log(html);
+                    }
+                    result.push(0);
+                }
             }
+            info.reply_num = (page_num-1)*100 + t.find("ul#comments>li").size();
+            info.last_reply = t.find(".pubtime:last").text();
+            info.last_reply_ex = calcTime(info.last_reply);
+            debugger;
+            result.push(info);
         }
-        info.cmt_num = (page_num-1)*100 + t.find("ul#comments>li").size();
-        info.last_reply = t.find(".pubtime:last").text();
-        debugger;
-        info.last_reply_ex = calcTime(info.last_reply);
-        return info;
-    }
-    else {
-        if (DEBUG) {
-            console.log(url + " NOT FOUND");
-            console.log(html);
+        else {
+            if (DEBUG) {
+                console.log(url + " NOT FOUND");
+                console.log(html);
+            }
+            result.push(0);
         }
-        return 0;
     }
+    return result;
 };
 
 chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
@@ -122,24 +129,22 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
                 case "append":
                     switch (msg.type) {
                         case "del":
-                            for (index in msg.del_url) {
-                                if (del_url.indexOf(msg.del_url[index] < 0))
-                                    del_url.push(msg.del_url[index]);
-                            }
-                            for (index in msg.del_topic) {
-                                if (del_topic.indexOf(msg.del_topic[index] < 0))
-                                    del_topic.push(msg.del_topic[index]);
+                            var len = msg.del_url.length;
+                            for (i = 0; i < len; i++) {
+                                if (del_url.indexOf(msg.del_url[i]) < 0) {
+                                    del_url.push(msg.del_url[i]);
+                                    del_topic.push(msg.del_topic[i]);
+                                }
                             }
                             break;
                         case "top":
-                            for (index in msg.top_url) {
-                                if (top_url.indexOf(msg.top_url[index] < 0))
-                                    top_url.push(msg.top_url[index]);
-                            }
-                            for (index in msg.top_topic) {
-                                if (top_topic.indexOf(msg.top_topic[index] < 0))
-                                    top_topic.push(msg.top_topic[index]);
+                            var len = msg.top_url.length;
+                            for (i = 0; i < len; i++) {
+                                if (top_url.indexOf(msg.top_url[i]) < 0) {
+                                    top_url.push(msg.top_url[i]);
+                                    top_topic.push(msg.top_topic[i]);
                                 }
+                            }
                             break;
                         default:
                             break;
