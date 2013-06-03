@@ -8,5 +8,5 @@ uhhhh.....it's still unfinished.
 
 TODO
 ==
-make those topped topic always display in top of other topics.  
 build options page.
+redesign control panel.
