@@ -58,6 +58,7 @@ calcTime = function(str) {
 };
 
 getTopicInfo = function(topic_url) {
+    debugger;
     var result = [];
     for (index in topic_url) {
         var url = topic_url[index];
@@ -94,7 +95,6 @@ getTopicInfo = function(topic_url) {
             info.reply_num = (page_num-1)*100 + t.find("ul#comments>li").size();
             info.last_reply = t.find(".pubtime:last").text();
             info.last_reply_ex = calcTime(info.last_reply);
-            debugger;
             result.push(info);
         }
         else {
@@ -115,15 +115,19 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
         del_topic = (!! s.del_url) ? s.del_topic.split(",") : [];
         top_url = (!! s.top_url) ? s.top_url.split(",") : [];
         top_topic = (!! s.top_topic) ? s.top_topic.split(",") : [];
+        extend = (!! s.extend) ? s.extend : true;
 
         if (sender.tab.url.indexOf("options") < 0) {
             switch (msg.cmd) {
                 case "all":
                     sendResponse({
-                        del_url: del_url,
-                        del_topic: del_topic,
-                        top_url: top_url,
-                        top_topic: top_topic
+                        list: {
+                            del_url: del_url,
+                            del_topic: del_topic,
+                            top_url: top_url,
+                            top_topic: top_topic
+                        },
+                        extend: extend
                     });
                     break;
                 case "append":
@@ -151,10 +155,36 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
                     }
                     break;
                 case "remove":
-                    del_url = del_topic = top_url = top_topic = [];
+                    switch (msg.type) {
+                        case "del":
+                            var len = msg.del_url.length;
+                            for (i = 0; i < len; i++) {
+                                var index = del_url.indexOf(msg.del_url[i]);
+                                if (index < 0) {
+                                    del_url.splice(index, 1);
+                                    del_topic.splice(index, 1);
+                                }
+                            }
+                            break;
+                        case "top":
+                            var len = msg.top_url.length;
+                            for (i = 0; i < len; i++) {
+                                var index = top_url.indexOf(msg.top_url[i]);
+                                if (index < 0) {
+                                    top_url.splice(index, 1);
+                                    top_topic.splice(index, 1);
+                                }
+                            }
+                            break;
+                        default:
+                            break;
+                    }
                     break;
                 case "query":
                     sendResponse(getTopicInfo(msg.topic_url));
+                    break;
+                case "clear":
+                    del_url = del_topic = top_url = top_topic = [];
                     break;
                 default:
                     break;
@@ -163,6 +193,7 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
             s.del_topic = del_topic;
             s.top_url = top_url;
             s.top_topic = top_topic;
+            s.extend = extend;
         }
         else {
             console.log('WTF!');

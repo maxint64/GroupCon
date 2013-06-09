@@ -1,71 +1,78 @@
 $(document).ready(function(){
     var booturl = chrome.extension.getURL("css/bootstrap.customized.css");
 
-	var btn = "<div class='btn-group'>";
-    btn += "<button class='btn btn-small'>选择</button>";
-    btn += "<style scoped>";
-    btn += "@import url('" + booturl + "');";
-    btn += "</style>";
-    btn += "<button class='btn btn-small dropdown-toggle' data-toggle='dropdown'>";
-    btn += "<span class='caret'></span></button>";
-	btn += "<ul class='dropdown-menu'>" 
-	btn += "<li><a tabindex='0' href='#'>全选</a></li>";
-	btn += "<li><a tabindex='1' href='#'>不选</a></li>";
-	btn += "<li><a tabindex='2' href='#'>反选</a></li>";
-    btn += "</ul>"
-    btn += "</div>";
+    var heart = "<i class='icon-heart'></i>";
+    var redheart = "<i class='icon-redheart'></i>";
+    var trash = "<i class='icon-trash'></i>";
 
-	btn += "<div class='btn-group'>";
-	btn += "<button class='btn btn-small' id='del'><i class='icon-trash'></i> 删除</button>";
-	btn += "<button class='btn btn-small' id='top'><i class='icon-arrow-up'></i> 置顶</button>";
-	btn += "<button class='btn btn-small' id='cog'><i class='icon-cog'></i> 设置</button>";
-	btn += "</div>";
-	
-	var select = function(arg) {
-		switch(arg) {
-			case 0:
-				$(":checkbox[name='trashes']").attr("checked", "checked");
-				break;
-			case 1:
-				$(":checkbox[name='trashes']").removeAttr("checked");
-				break;
-			case 2:
-				$(":checkbox[name='trashes']").each(function() {
-					if (!! $(this).attr("checked")) {
-						$(this).removeAttr("checked");
-					}
-					else {
-						$(this).attr("checked", "checked");
-					}
-				});
-				break;
-			default:
-				break;
-		}
-	}
-	
-	var add_to_del = function(url, topic) {
+	var _add_to_trash = function(url, topic) {
         chrome.extension.sendMessage({
             cmd: "append", 
             type: "del", 
             del_url: url, 
             del_topic: topic
         });
-	}
+	};
 	
-	var top_ = function(e) {
-        e.addClass("info");
+	var _top = function(e) {
+        e.addClass("info like");
+        if (extend)
+            e.css("display", "table-row");
+        else
+            e.css("display", "none");
 		$("tr.pl:first").after(e);
-    }
+    };
 	
-	var add_to_top = function(url, topic) {
+	var _add_to_top = function(url, topic) {
         chrome.extension.sendMessage({
             cmd: "append",
             type: "top",
             top_url: url,
             top_topic: topic
         });
-	}
+	};
+
+    var _remove_from_top = function(url, topic) {
+        chrome.extension.sendMessage({
+            cmd: "remove",
+            type: "top",
+            top_url: url,
+            top_topic: topic
+        });
+    };
+
+    var addToTrash = function(e) {
+        var url = e.find("td.td-subject a").attr("href");
+        var topic = e.find("td.td-subject a").text();
+        local.del_url.push(url);
+        local.del_topic.push(topic);
+        _add_to_trash([url], [topic]);
+        e.remove();
+    };
+
+    var addToTop = function(e) {
+        var url = e.find("td.td-subject a").attr("href");
+        var topic = e.find("td.td-subject a").text();
+        local.top_url.push(url);
+        local.top_topic.push(topic);
+        _add_to_top([url], [topic]);
+        var i = e.find("td.td-subject i");
+        i.removeClass("icon-heart");
+        i.addClass("icon-redheart");
+        _top(e);
+    };
+
+    var removeFromTop = function(e) {
+        var url = e.find("td.td-subject a").attr("href");
+        var topic = e.find("td.td-subject a").text();
+        debugger;
+        var i = local.top_url.indexOf(url);
+        local.top_url.splice(i, 1);
+        i = local.top_topic.initTop(topic);
+        local.top_topic.splice(i, 1);
+        debugger;
+        _remove_from_top([url], [topic]);
+    }
 
     var initTop = function() {
         chrome.extension.sendMessage({cmd: "query", topic_url: local.top_url}, function(data) {
@@ -79,7 +86,7 @@ $(document).ready(function(){
                     a.attr("title", info.topic);
                     a.text(info.topic);
                     new_tr.find(".td-subject").append(a);
-                    a.before("<input name='trashes' type='checkbox' />");
+                    a.before(redheart + " " + trash + " ");
                     new_tr.find(".td-reply").text(info.reply_num + "回应");
                     new_tr.find(".td-time").attr("title", info.last_reply);
                     new_tr.find(".td-time").text(info.last_reply_ex);
@@ -87,89 +94,88 @@ $(document).ready(function(){
                     a.attr("href", info.group_url);
                     a.text(info.group_name);
                     new_tr.find("td:last").append(a);
-                    top_(new_tr);
-                    debugger;
+                    if (extend) 
+                        new_tr.css("display", "table-row");
+                    else
+                        new_tr.css("display", "none");
+                    _top(new_tr);
                 }
                 else {
+                    debugger;
                     console.log("TOPIC INFO NOT FOUND");
                 }
             }
+
+            $("i.icon-trash").click(function() {
+                var pp = $(this).parent().parent();
+                debugger;
+                if (pp.hasClass("like")) {
+                    removeFromTop(pp);
+                }
+                addToTrash(pp);
+            });
+
+            $("i.icon-heart").click(function() {
+                var pp = $(this).parent().parent();
+                addToTop(pp);
+            });
         });
     };
-
+    
     var local = {};
+    var extend = true;
 
     var init = function() {
 
-        $("table.olt").addClass("table table-hover");
-        $("tr.pl:first").before("<tr class='pl control'><td colspan='4'></td></tr>");
-        $("tr.pl:first td:first").append(btn);
-
         chrome.extension.sendMessage({cmd: "all"}, function(data) {
-            local = data;
+            local = data.list;
+            extend = data.extend;
 
-            $($("td.td-subject a").get().reverse()).each(function() {
-                href = $(this).attr("href");
-                if (data.del_url.indexOf(href) >= 0 || data.top_url.indexOf(href) >= 0)
-                    $(this).parent().parent().remove();
+            $("table.olt").addClass("table table-hover");
+            $("tr.pl:first").before("<tr class='pl control info'><td colspan='4'></td></tr>");
+            var btn = "<div style='text-align:center'><style scope>";
+            btn += "@import url('" + booturl + "');";
+            btn += "</style>";
+            if (extend)
+                btn += "<i class='icon-chevron-up'></i></div>";
+            else
+                btn += "<i class='icon-chevron-down'></i></div>";
+            $("tr.pl:first td:first").append(btn);
+
+            $("tr.pl.control").click(function() {
+                var i = $(this).find("i");
+                if (i.hasClass("icon-chevron-up")) {
+                    $("tr.pl.like").css("display", "none");
+                    i.removeClass("icon-chevron-up");
+                    i.addClass("icon-chevron-down");
+                    extend = false;
+                }
+                else {
+                    $("tr.pl.like").css("display", "table-row");
+                    i.removeClass("icon-chevron-down");
+                    i.addClass("icon-chevron-up");
+                    extend = true;
+                }
             });
+
+            $(".head-nav").css("width", "690px");
+            $(".head-nav").append("<button class='btn btn-link cog' style='color:#000000;float:right'><i class='icon-cog'></i>小组控</button>");
 
             initTop();
-        });
 
-        $("td.td-subject a").each(function() {
-            $(this).before("<input name='trashes' type='checkbox' /> ");
-        });
-
-        $(".dropdown-menu li a").click(function() {
-            select($(this).attr("tabindex"));
-        });
-        
-        $("button#del").click(function() {
-            var tmp_url = [];
-            var tmp_topic = [];
-            $(":checked[name='trashes']").each(function() {
-                var url = $(this).next("a").attr("href");
-                var topic = $(this).next("a").attr("title");
-                if (local.del_url.indexOf(url) < 0) {
-                    local.del_url.push(url);
-                    local.del_topic.push(topic);
-                    tmp_url.push(url);
-                    tmp_url.push(topic);
+            $("td.td-subject a").each(function() {
+                if (! $(this).parent().parent().hasClass("info")) {
+                    href = $(this).attr("href");
+                    if (local.del_url.indexOf(href) >= 0 || local.top_url.indexOf(href) >= 0)
+                        $(this).parent().parent().remove();
+                    else
+                        $(this).before(heart + " " + trash + " ");
                 }
-                $(this).parent().parent().remove();
             });
-            add_to_del(tmp_url, tmp_topic);
-        });
-        
-        $("button#top").click(function() {
-            var tmp_url = [];
-            var tmp_topic = [];
-            $($(":checked[name='trashes']").get().reverse()).each(function() {
-                var url = $(this).next("a").attr("href");
-                var topic = $(this).next("a").attr("title");
-                if (local.top_url.indexOf(url) < 0) {
-                    local.top_url.push(url);
-                    local.top_topic.push(topic);
-                    tmp_url.push(url);
-                    tmp_topic.push(url);
-                }
-                top_($(this).parent().parent());
-                $(this).removeAttr("checked");
+            
+            $("button.cog").click(function() {
+                chrome.extension.sendMessage({cmd: "clear"});
             });
-            add_to_top(tmp_url, tmp_topic);
-        });
-        
-        $("button#cog").click(function() {
-            //window.open(chrome.extension.getURL("html/options.html"));
-            chrome.extension.sendMessage({cmd: "remove"});
-            //chrome.extension.sendMessage({
-            //    cmd: "query",
-            //    topic_url: "http://www.douban.com/group/topic/14753859/",
-            //},
-            //function(data) {
-            //    console.log(data);
-            //});
         });
     };
 
