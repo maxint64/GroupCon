@@ -23,6 +23,7 @@ getHtml = function(url) {
 calcTime = function(str) {
     str = str.split(" ");
     var date = str[0].split("-");
+    debugger;
     var time = str[1].split(":");
     var i = parseInt;
     var now = new Date();
@@ -58,7 +59,6 @@ calcTime = function(str) {
 };
 
 getTopicInfo = function(topic_url) {
-    debugger;
     var result = [];
     for (index in topic_url) {
         var url = topic_url[index];
@@ -73,6 +73,11 @@ getTopicInfo = function(topic_url) {
             var t = $(html);
             info.url = url;
             info.topic = $.trim(t.find("h1").text());
+            //当前topic不存在或已被删除
+            if (info.topic.length == 0) {
+                result.push(0);
+                continue;
+            }
             info.group_name = t.find(".group-item .title a").text();
             info.group_url = t.find(".group-item .title a").attr("href");
             var page_num = 1;
@@ -94,6 +99,7 @@ getTopicInfo = function(topic_url) {
             }
             info.reply_num = (page_num-1)*100 + t.find("ul#comments>li").size();
             info.last_reply = t.find(".pubtime:last").text();
+            debugger;
             info.last_reply_ex = calcTime(info.last_reply);
             result.push(info);
         }
@@ -117,86 +123,88 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
         top_topic = (!! s.top_topic) ? s.top_topic.split(",") : [];
         extend = (!! s.extend) ? s.extend : true;
 
-        if (sender.tab.url.indexOf("options") < 0) {
-            switch (msg.cmd) {
-                case "all":
-                    sendResponse({
-                        list: {
-                            del_url: del_url,
-                            del_topic: del_topic,
-                            top_url: top_url,
-                            top_topic: top_topic
-                        },
-                        extend: extend
-                    });
-                    break;
-                case "append":
-                    switch (msg.type) {
-                        case "del":
-                            var len = msg.del_url.length;
-                            for (i = 0; i < len; i++) {
-                                if (del_url.indexOf(msg.del_url[i]) < 0) {
-                                    del_url.push(msg.del_url[i]);
-                                    del_topic.push(msg.del_topic[i]);
-                                }
+        //当时为什么要这么写呢？可能想为option和myscript提供两套不通的功能吧...
+        //但现在似乎没必要就先注释掉好了=_=
+        //if (sender.tab.url.indexOf("options") < 0) {
+        switch (msg.cmd) {
+            case "all":
+                sendResponse({
+                    list: {
+                        del_url: del_url,
+                        del_topic: del_topic,
+                        top_url: top_url,
+                        top_topic: top_topic
+                    },
+                    extend: extend
+                });
+                break;
+            case "append":
+                switch (msg.type) {
+                    case "del":
+                        var len = msg.del_url.length;
+                        for (i = 0; i < len; i++) {
+                            if (del_url.indexOf(msg.del_url[i]) < 0) {
+                                del_url.push(msg.del_url[i]);
+                                del_topic.push(msg.del_topic[i]);
                             }
-                            break;
-                        case "top":
-                            var len = msg.top_url.length;
-                            for (i = 0; i < len; i++) {
-                                if (top_url.indexOf(msg.top_url[i]) < 0) {
-                                    top_url.push(msg.top_url[i]);
-                                    top_topic.push(msg.top_topic[i]);
-                                }
+                        }
+                        break;
+                    case "top":
+                        var len = msg.top_url.length;
+                        for (i = 0; i < len; i++) {
+                            if (top_url.indexOf(msg.top_url[i]) < 0) {
+                                top_url.push(msg.top_url[i]);
+                                top_topic.push(msg.top_topic[i]);
                             }
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                case "remove":
-                    switch (msg.type) {
-                        case "del":
-                            var len = msg.del_url.length;
-                            for (i = 0; i < len; i++) {
-                                var index = del_url.indexOf(msg.del_url[i]);
-                                if (index < 0) {
-                                    del_url.splice(index, 1);
-                                    del_topic.splice(index, 1);
-                                }
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case "remove":
+                switch (msg.type) {
+                    case "del":
+                        var len = msg.del_url.length;
+                        for (i = 0; i < len; i++) {
+                            var index = del_url.indexOf(msg.del_url[i]);
+                            if (index >= 0) {
+                                del_url.splice(index, 1);
+                                del_topic.splice(index, 1);
                             }
-                            break;
-                        case "top":
-                            var len = msg.top_url.length;
-                            for (i = 0; i < len; i++) {
-                                var index = top_url.indexOf(msg.top_url[i]);
-                                if (index < 0) {
-                                    top_url.splice(index, 1);
-                                    top_topic.splice(index, 1);
-                                }
+                        }
+                        break;
+                    case "top":
+                        var len = msg.top_url.length;
+                        for (i = 0; i < len; i++) {
+                            var index = top_url.indexOf(msg.top_url[i]);
+                            if (index >= 0) {
+                                top_url.splice(index, 1);
+                                top_topic.splice(index, 1);
                             }
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                case "query":
-                    sendResponse(getTopicInfo(msg.topic_url));
-                    break;
-                case "clear":
-                    del_url = del_topic = top_url = top_topic = [];
-                    break;
-                default:
-                    break;
-            }
-            s.del_url = del_url;
-            s.del_topic = del_topic;
-            s.top_url = top_url;
-            s.top_topic = top_topic;
-            s.extend = extend;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            case "query":
+                sendResponse(getTopicInfo(msg.topic_url));
+                break;
+            case "clear":
+                del_url = del_topic = top_url = top_topic = [];
+                break;
+            default:
+                break;
         }
-        else {
-            console.log('WTF!');
-        }
+        s.del_url = del_url;
+        s.del_topic = del_topic;
+        s.top_url = top_url;
+        s.top_topic = top_topic;
+        s.extend = extend;
+        //}
+        //else {
+        //    console.log('WTF!');
+        //}
     }
 });

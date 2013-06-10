@@ -41,6 +41,15 @@ $(document).ready(function(){
         });
     };
 
+    var _remove_from_del = function(url, topic) {
+        chrome.extension.sendMessage({
+            cmd: "remove",
+            type: "del",
+            del_url: url,
+            del_topic: topic
+        });
+    };
+
     var addToTrash = function(e) {
         var url = e.find("td.td-subject a").attr("href");
         var topic = e.find("td.td-subject a").text();
