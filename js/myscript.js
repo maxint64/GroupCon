@@ -52,7 +52,7 @@ $(document).ready(function(){
 
     var addToTrash = function(e) {
         var url = e.find("td.td-subject a").attr("href");
-        var topic = e.find("td.td-subject a").text();
+        var topic = e.find("td.td-subject a").attr("title");
         local.del_url.push(url);
         local.del_topic.push(topic);
         _add_to_trash([url], [topic]);
@@ -61,7 +61,7 @@ $(document).ready(function(){
 
     var addToTop = function(e) {
         var url = e.find("td.td-subject a").attr("href");
-        var topic = e.find("td.td-subject a").text();
+        var topic = e.find("td.td-subject a").attr("title");
         local.top_url.push(url);
         local.top_topic.push(topic);
         _add_to_top([url], [topic]);
