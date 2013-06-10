@@ -10,15 +10,15 @@
         <div class="row" style="margin-top:100px">
             <div class="span9">
                 <ul class="nav nav-tabs">
-                    <li class="active"><a href="#topic">话题</a></li>
-                    <li><a href="#key">关键词</a></li>
+                    <li class="active"><a href="#trash">垃圾箱</a></li>
+                    <li><a href="#like">收藏夹</a></li>
+                    <li><a href="#key">屏蔽关键词</a></li>
                     <li><a href="#cog">设置</a></li>
                 </ul>
 
                 <div class="tab-content">
-                    <div class="tab-pane active row" id="topic">
+                    <div class="tab-pane active row" id="trash">
                         <div class="span8">
-                            <h3>屏蔽话题</h3>
                             <div class="input-append">
                                 <input class="span7" id="appendedInputButton" type="text" placeholder="输入想要屏蔽的话题链接...">
                                 <button class="btn" type="button" style="width:80px">添加</button>
@@ -27,8 +27,11 @@
                                 <thead><tr><th>话题</th><th>URL</th></tr></thead>
                                 <tbody></tbody>
                             </table>
-                            <hr />
-                            <h3>置顶话题</h3>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane row" id="like">
+                        <div class="span8">
                             <div class="input-append">
                                 <input class="span7" id="appendedInputButton" type="text" placeholder="输入想要置顶的话题链接...">
                                 <button class="btn" type="button" style="width:80px">添加</button>
@@ -42,7 +45,6 @@
 
                     <div class="tab-pane row" id="key">
                         <div class="span8">
-                            <h3>屏蔽关键词</h3>
                             <div class="input-append">
                                 <input class="span7" id="appendedInputButton" type="text" placeholder="输入想要屏蔽的关键词,多个关键词之间请使用空格分割...">
                                 <button class="btn" type="button" style="width:80px">添加</button>
