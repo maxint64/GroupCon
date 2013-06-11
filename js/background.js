@@ -1,6 +1,6 @@
 var DEBUG = false;
 
-getHtml = function(url) {
+var getHtml = function(url) {
     return $.ajax({
         url: url,
         async: false,
@@ -20,10 +20,10 @@ getHtml = function(url) {
     }).responseText;
 };
 
-calcTime = function(str) {
+var calcTime = function(str) {
+    debugger;
     str = str.split(" ");
     var date = str[0].split("-");
-    debugger;
     var time = str[1].split(":");
     var i = parseInt;
     var now = new Date();
@@ -38,7 +38,9 @@ calcTime = function(str) {
     //在两天内的，显示时间
     //在一年内的，显示日期
     //一年以上显示年差
-    if (diff < 60)
+    if (diff < 1)
+        return "刚刚";
+    else if (diff < 60)
         return diff + "秒前";
     else if (diff < 3600)
         return i(diff/60, 10) + "分钟前";
@@ -58,10 +60,10 @@ calcTime = function(str) {
     }
 };
 
-getTopicInfo = function(topic_url) {
+getTopicInfo = function(like) {
     var result = [];
-    for (index in topic_url) {
-        var url = topic_url[index];
+    for (var index in like) {
+        var url = like[index];
         var html = getHtml(url);
 
         //GHOST BUG: 之前这里总是报错，在stackoverflow上看到说jQuery不能解析有<head>标签的html,
@@ -78,6 +80,10 @@ getTopicInfo = function(topic_url) {
                 result.push(0);
                 continue;
             }
+            info.title = $.trim(t.find("table.infobox td.tablecc").text()).substr(3);
+            debugger;
+            if (info.title.length == 0)
+                info.title = info.topic;
             info.group_name = t.find(".group-item .title a").text();
             info.group_url = t.find(".group-item .title a").attr("href");
             var page_num = 1;
@@ -99,8 +105,11 @@ getTopicInfo = function(topic_url) {
             }
             info.reply_num = (page_num-1)*100 + t.find("ul#comments>li").size();
             info.last_reply = t.find(".pubtime:last").text();
-            debugger;
-            info.last_reply_ex = calcTime(info.last_reply);
+            info.pub_time = t.find("h3 span.color-green").text();
+            if (info.reply_num == 0)
+                info.last_reply_ex = calcTime(info.pub_time);
+            else
+                info.last_reply_ex = calcTime(info.last_reply);
             result.push(info);
         }
         else {
@@ -116,12 +125,10 @@ getTopicInfo = function(topic_url) {
 
 chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
     if (sender.tab) {
-        s = localStorage;
-        del_url = (!! s.del_url) ? s.del_url.split(",") : [];
-        del_topic = (!! s.del_url) ? s.del_topic.split(",") : [];
-        top_url = (!! s.top_url) ? s.top_url.split(",") : [];
-        top_topic = (!! s.top_topic) ? s.top_topic.split(",") : [];
-        extend = (!! s.extend) ? s.extend : true;
+        var s = localStorage;
+        var like = (!! s.like) ? s.like.split(",") : [];
+        var trash = (!! s.trash) ? s.trash.split(",") : [];
+        var extend = (!! s.extend) ? s.extend : true;
 
         //当时为什么要这么写呢？可能想为option和myscript提供两套不通的功能吧...
         //但现在似乎没必要就先注释掉好了=_=
@@ -129,33 +136,21 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
         switch (msg.cmd) {
             case "all":
                 sendResponse({
-                    list: {
-                        del_url: del_url,
-                        del_topic: del_topic,
-                        top_url: top_url,
-                        top_topic: top_topic
-                    },
+                    like: like,
+                    trash: trash,
                     extend: extend
                 });
                 break;
             case "append":
                 switch (msg.type) {
-                    case "del":
-                        var len = msg.del_url.length;
-                        for (i = 0; i < len; i++) {
-                            if (del_url.indexOf(msg.del_url[i]) < 0) {
-                                del_url.push(msg.del_url[i]);
-                                del_topic.push(msg.del_topic[i]);
-                            }
+                    case "trash":
+                        if (trash.indexOf(msg.url) < 0) {
+                            trash.push(msg.url);
                         }
                         break;
-                    case "top":
-                        var len = msg.top_url.length;
-                        for (i = 0; i < len; i++) {
-                            if (top_url.indexOf(msg.top_url[i]) < 0) {
-                                top_url.push(msg.top_url[i]);
-                                top_topic.push(msg.top_topic[i]);
-                            }
+                    case "like":
+                        if (like.indexOf(msg.url) < 0) {
+                            like.push(msg.url);
                         }
                         break;
                     default:
@@ -164,24 +159,16 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
                 break;
             case "remove":
                 switch (msg.type) {
-                    case "del":
-                        var len = msg.del_url.length;
-                        for (i = 0; i < len; i++) {
-                            var index = del_url.indexOf(msg.del_url[i]);
-                            if (index >= 0) {
-                                del_url.splice(index, 1);
-                                del_topic.splice(index, 1);
-                            }
+                    case "trash":
+                        var i = trash.indexOf(msg.url);
+                        if (i >= 0) {
+                            trash.splice(i, 1);
                         }
                         break;
-                    case "top":
-                        var len = msg.top_url.length;
-                        for (i = 0; i < len; i++) {
-                            var index = top_url.indexOf(msg.top_url[i]);
-                            if (index >= 0) {
-                                top_url.splice(index, 1);
-                                top_topic.splice(index, 1);
-                            }
+                    case "like":
+                        var i = like.indexOf(msg.url);
+                        if (index >= 0) {
+                            like.splice(i, 1);
                         }
                         break;
                     default:
@@ -189,18 +176,25 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
                 }
                 break;
             case "query":
-                sendResponse(getTopicInfo(msg.topic_url));
+                switch (msg.type) {
+                    case "like":
+                        sendResponse(getTopicInfo(msg.like));
+                        break;
+                    case "trash":
+                        break;
+                    default:
+                        break;
+                }
                 break;
             case "clear":
-                del_url = del_topic = top_url = top_topic = [];
+                trash = like = [];
+                extend = true;
                 break;
             default:
                 break;
         }
-        s.del_url = del_url;
-        s.del_topic = del_topic;
-        s.top_url = top_url;
-        s.top_topic = top_topic;
+        s.trash = trash;
+        s.like = like;
         s.extend = extend;
         //}
         //else {

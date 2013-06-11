@@ -1,16 +1,19 @@
 $(document).ready(function(){
     var booturl = chrome.extension.getURL("css/bootstrap.customized.css");
 
-    var heart = "<i class='icon-heart'></i>";
-    var redheart = "<i class='icon-redheart'></i>";
-    var trash = "<i class='icon-trash'></i>";
+    var icon_heart = "<i class='icon-heart'></i>";
+    var icon_rheart = "<i class='icon-redheart'></i>";
+    var icon_trash = "<i class='icon-trash'></i>";
 
-	var _add_to_trash = function(url, topic) {
+    var trunc = function(str, len) {
+        return (str.length > len) ? str.substr(0, len) + "..." : str;
+    }
+
+	var _add_to_trash = function(url) {
         chrome.extension.sendMessage({
             cmd: "append", 
-            type: "del", 
-            del_url: url, 
-            del_topic: topic
+            type: "trash", 
+            url: url, 
         });
 	};
 	
@@ -23,85 +26,63 @@ $(document).ready(function(){
 		$("tr.pl:first").after(e);
     };
 	
-	var _add_to_top = function(url, topic) {
+	var _add_to_like = function(url) {
         chrome.extension.sendMessage({
             cmd: "append",
-            type: "top",
-            top_url: url,
-            top_topic: topic
+            type: "like",
+            url: url
         });
 	};
 
-    var _remove_from_top = function(url, topic) {
+    var _remove_from_like = function(url) {
         chrome.extension.sendMessage({
             cmd: "remove",
-            type: "top",
-            top_url: url,
-            top_topic: topic
-        });
-    };
-
-    var _remove_from_del = function(url, topic) {
-        chrome.extension.sendMessage({
-            cmd: "remove",
-            type: "del",
-            del_url: url,
-            del_topic: topic
+            type: "like",
+            url: url,
         });
     };
 
     var addToTrash = function(e) {
         var url = e.find("td.td-subject a").attr("href");
-        var topic = e.find("td.td-subject a").attr("title");
-        local.del_url.push(url);
-        local.del_topic.push(topic);
-        _add_to_trash([url], [topic]);
+        _add_to_trash(url);
         e.remove();
     };
 
-    var addToTop = function(e) {
+    var addToLike = function(e) {
         var url = e.find("td.td-subject a").attr("href");
-        var topic = e.find("td.td-subject a").attr("title");
-        local.top_url.push(url);
-        local.top_topic.push(topic);
-        _add_to_top([url], [topic]);
+        _add_to_like(url);
         var i = e.find("td.td-subject i");
         i.removeClass("icon-heart");
         i.addClass("icon-redheart");
         _top(e);
     };
 
-    var removeFromTop = function(e) {
+    var removeFromLike = function(e) {
         var url = e.find("td.td-subject a").attr("href");
-        var topic = e.find("td.td-subject a").text();
-        debugger;
-        var i = local.top_url.indexOf(url);
-        local.top_url.splice(i, 1);
-        i = local.top_topic.initTop(topic);
-        local.top_topic.splice(i, 1);
-        debugger;
-        _remove_from_top([url], [topic]);
+        _remove_from_like(url);
+        e.remove();
     }
 
     var initTop = function() {
-        chrome.extension.sendMessage({cmd: "query", topic_url: local.top_url}, function(data) {
+        chrome.extension.sendMessage({cmd: "query", type: "like", like: like}, function(data) {
             var tr = "<tr class='pl'><td class='td-subject'></td><td class='td-reply' nowrap='nowrap'></td><td class='td-time'></td><td></td></tr>";
             for (index in data) {
                 var info = data[index];
                 if (!! info) {
+                    debugger;
                     var new_tr = $(tr); 
                     var a = $("<a></a>");
                     a.attr("href", info.url);
-                    a.attr("title", info.topic);
+                    a.attr("title", info.title);
                     a.text(info.topic);
                     new_tr.find(".td-subject").append(a);
-                    a.before(redheart + " " + trash + " ");
+                    a.before(icon_rheart + " " + icon_trash + " ");
                     new_tr.find(".td-reply").text(info.reply_num + "回应");
                     new_tr.find(".td-time").attr("title", info.last_reply);
                     new_tr.find(".td-time").text(info.last_reply_ex);
                     a = $("<a></a>");
                     a.attr("href", info.group_url);
-                    a.text(info.group_name);
+                    a.text(trunc(info.group_name, 12));
                     new_tr.find("td:last").append(a);
                     if (extend) 
                         new_tr.css("display", "table-row");
@@ -117,27 +98,27 @@ $(document).ready(function(){
 
             $("i.icon-trash").click(function() {
                 var pp = $(this).parent().parent();
-                debugger;
                 if (pp.hasClass("like")) {
-                    removeFromTop(pp);
+                    removeFromLike(pp);
                 }
                 addToTrash(pp);
             });
 
             $("i.icon-heart").click(function() {
                 var pp = $(this).parent().parent();
-                addToTop(pp);
+                addToLike(pp);
             });
         });
     };
     
-    var local = {};
+    var like = [];
+    var trash = []; 
     var extend = true;
 
     var init = function() {
-
         chrome.extension.sendMessage({cmd: "all"}, function(data) {
-            local = data.list;
+            like = data.like;
+            trash = data.trash;
             extend = data.extend;
 
             $("table.olt").addClass("table table-hover");
@@ -175,10 +156,10 @@ $(document).ready(function(){
             $("td.td-subject a").each(function() {
                 if (! $(this).parent().parent().hasClass("info")) {
                     href = $(this).attr("href");
-                    if (local.del_url.indexOf(href) >= 0 || local.top_url.indexOf(href) >= 0)
+                    if (trash.indexOf(href) >= 0 || like.indexOf(href) >= 0)
                         $(this).parent().parent().remove();
                     else
-                        $(this).before(heart + " " + trash + " ");
+                        $(this).before(icon_heart + " " + icon_trash + " ");
                 }
             });
             

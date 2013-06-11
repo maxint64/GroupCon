@@ -13,8 +13,15 @@ $(document).ready(function() {
 
         debugger;
         var len = local.del_url.length;
-        for (var i = 0; i < len; i++) {
-            $("#del tbody").append("<tr><td>" + local.del_topic[i] + "</td><td>" + local.del_url[i] + "</td></tr>");
+        if (len > 0) {
+            $("#trashfield").append("<table class='table'></table>");
+            for (var i = 0; i < len; i++) {
+                var a = $("<a></a>");
+                a.attr("href", local.del_url[i]);
+                a.attr("title", local.del_topic[i]);
+                a.text(local.del_topic[i]);
+                var tr = $("<tr><td></td></tr>");
+            }
         }
 
         len = local.top_url.length;
