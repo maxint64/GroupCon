@@ -1,32 +1,112 @@
 $(document).ready(function() {
-    var local = {};
-    var extend = false;
+    var extend = true;
+    var like = [];
+    var trash = [];
+
+    var _add_to_trash = function(url) {
+        chrome.extension.sendMessage({
+            cmd: "append", 
+            type: "trash", 
+            url: url, 
+        });
+	};
+	
+	var _add_to_like = function(url) {
+        chrome.extension.sendMessage({
+            cmd: "append",
+            type: "like",
+            url: url
+        });
+	};
+
+    var _remove_from_like = function(url) {
+        chrome.extension.sendMessage({
+            cmd: "remove",
+            type: "like",
+            url: url
+        });
+    };
+
+    var _remove_from_trash = function(url) {
+        chrome.extension.sendMessage({
+            cmd: "remove",
+            type: "trash",
+            url: url
+        });
+    };
 
     $(".nav-tabs a").click(function(e) {
         e.preventDefault();
         $(this).tab("show");
     });
 
-    chrome.extension.sendMessage({cmd: "all"}, function(data) {
-        local = data.list;
-        extend = data.extend;
+    $("button").click(function () {
+        var ppp = $(this).parent().parent().parent();
+        var url = $.trim(ppp.find("input").text());
 
-        debugger;
-        var len = local.del_url.length;
+        switch (ppp.attr("id")) {
+            case "trash":
+                if ($(this).hasClass("append")) {
+                    if (url.length > 0) {
+                        _add_to_trash(url);
+                    }
+                }
+                if ($(this).hasClass("clear")) {
+                }
+                break;
+            case "like":
+                if ($(this).hasClass("append")) {
+                    if (url.length > 0) {
+                        _add_to_like(url);
+                    }
+                }
+                if ($(this).hasClass("clear")) {
+                }
+                break;
+            case "key":
+                break;
+            default:
+                break;
+        }
+    });
+
+    chrome.extension.sendMessage({cmd: "all"}, function(data) {
+        extend = data.extend;
+        like = data.like;
+        trash = data.trash;
+
+        var len = trash.length;
         if (len > 0) {
-            $("#trashfield").append("<table class='table'></table>");
-            for (var i = 0; i < len; i++) {
-                var a = $("<a></a>");
-                a.attr("href", local.del_url[i]);
-                a.attr("title", local.del_topic[i]);
-                a.text(local.del_topic[i]);
-                var tr = $("<tr><td></td></tr>");
-            }
+            chrome.extension.sendMessage({cmd: "query", type: "trash", trash: trash}, function(data) {
+                var table = $("#trash table");
+                for (var index in data) {
+                    var info = data[index];
+                    var a = $("<a></a>");
+                    a.attr("href", info.url); 
+                    a.text(info.title);
+                    var tr = $("<tr><td></td></tr>");
+                    tr.find("td").append(a);
+                    tr.find("td").append("<i class='icon-remove'></i>");
+                    table.append(tr);
+                }
+            });
         }
 
-        len = local.top_url.length;
-        for (var i = 0; i < len; i++) {
-            $("#top tbody").append("<tr><td>" + local.top_topic[i] + "</td><td>" + local.top_url[i] + "</td></tr>");
+        len = like.length;
+        if (len > 0) {
+            chrome.extension.sendMessage({cmd: "query", type: "like", like: like}, function(data) {
+                var table = $("#like table");
+                for (var index in data) {
+                    var info = data[index];
+                    var a = $("<a></a>");
+                    a.attr("href", info.url); 
+                    a.text(info.title);
+                    var tr = $("<tr><td></td></tr>");
+                    tr.find("td").append(a);
+                    tr.find("td").append("<i class='icon-remove'></i>");
+                    table.append(tr);
+                }
+            });
         }
     });
 });

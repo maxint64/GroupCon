@@ -60,10 +60,11 @@ var calcTime = function(str) {
     }
 };
 
-getTopicInfo = function(like) {
+getTopicInfo = function(list) {
     var result = [];
-    for (var index in like) {
-        var url = like[index];
+
+    for (var index in list) {
+        var url = list[index];
         var html = getHtml(url);
 
         //GHOST BUG: 之前这里总是报错，在stackoverflow上看到说jQuery不能解析有<head>标签的html,
@@ -75,15 +76,23 @@ getTopicInfo = function(like) {
             var t = $(html);
             info.url = url;
             info.topic = $.trim(t.find("h1").text());
+
             //当前topic不存在或已被删除
             if (info.topic.length == 0) {
                 result.push(0);
                 continue;
             }
+
             info.title = $.trim(t.find("table.infobox td.tablecc").text()).substr(3);
             debugger;
             if (info.title.length == 0)
                 info.title = info.topic;
+
+            //if (simplify) {
+            //    result.push(info);
+            //    continue;
+            //}
+
             info.group_name = t.find(".group-item .title a").text();
             info.group_url = t.find(".group-item .title a").attr("href");
             var page_num = 1;
@@ -128,7 +137,7 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
         var s = localStorage;
         var like = (!! s.like) ? s.like.split(",") : [];
         var trash = (!! s.trash) ? s.trash.split(",") : [];
-        var extend = (!! s.extend) ? s.extend : true;
+        var extend = (!! s.extend) ? s.extend : 1;
 
         //当时为什么要这么写呢？可能想为option和myscript提供两套不通的功能吧...
         //但现在似乎没必要就先注释掉好了=_=
@@ -158,6 +167,7 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
                 }
                 break;
             case "remove":
+                debugger;
                 switch (msg.type) {
                     case "trash":
                         var i = trash.indexOf(msg.url);
@@ -167,7 +177,7 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
                         break;
                     case "like":
                         var i = like.indexOf(msg.url);
-                        if (index >= 0) {
+                        if (i >= 0) {
                             like.splice(i, 1);
                         }
                         break;
@@ -181,6 +191,7 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
                         sendResponse(getTopicInfo(msg.like));
                         break;
                     case "trash":
+                        sendResponse(getTopicInfo(msg.trash));
                         break;
                     default:
                         break;
@@ -188,7 +199,7 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
                 break;
             case "clear":
                 trash = like = [];
-                extend = true;
+                extend = 1;
                 break;
             default:
                 break;

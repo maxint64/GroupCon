@@ -38,7 +38,7 @@ $(document).ready(function(){
         chrome.extension.sendMessage({
             cmd: "remove",
             type: "like",
-            url: url,
+            url: url
         });
     };
 
@@ -60,13 +60,12 @@ $(document).ready(function(){
     var removeFromLike = function(e) {
         var url = e.find("td.td-subject a").attr("href");
         _remove_from_like(url);
-        e.remove();
     }
 
     var initTop = function() {
         chrome.extension.sendMessage({cmd: "query", type: "like", like: like}, function(data) {
             var tr = "<tr class='pl'><td class='td-subject'></td><td class='td-reply' nowrap='nowrap'></td><td class='td-time'></td><td></td></tr>";
-            for (index in data) {
+            for (var index in data) {
                 var info = data[index];
                 if (!! info) {
                     debugger;
@@ -113,7 +112,7 @@ $(document).ready(function(){
     
     var like = [];
     var trash = []; 
-    var extend = true;
+    var extend = 1;
 
     var init = function() {
         chrome.extension.sendMessage({cmd: "all"}, function(data) {
@@ -138,13 +137,13 @@ $(document).ready(function(){
                     $("tr.pl.like").css("display", "none");
                     i.removeClass("icon-chevron-up");
                     i.addClass("icon-chevron-down");
-                    extend = false;
+                    extend = 0;
                 }
                 else {
                     $("tr.pl.like").css("display", "table-row");
                     i.removeClass("icon-chevron-down");
                     i.addClass("icon-chevron-up");
-                    extend = true;
+                    extend = 1;
                 }
             });
 
