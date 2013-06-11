@@ -20,13 +20,13 @@ $(document).ready(function(){
 	
     var addToTrash = function(e) {
         var url = e.find("td.td-subject a").attr("href");
-        _add_to_trash(url);
+        _add_to_trash([url]);
         e.remove();
     };
 
     var addToLike = function(e) {
         var url = e.find("td.td-subject a").attr("href");
-        _add_to_like(url);
+        _add_to_like([url]);
         var i = e.find("td.td-subject i");
         i.removeClass("icon-heart");
         i.addClass("icon-redheart");
@@ -35,7 +35,7 @@ $(document).ready(function(){
 
     var removeFromLike = function(e) {
         var url = e.find("td.td-subject a").attr("href");
-        _remove_from_like(url);
+        _remove_from_like([url]);
     }
 
     var initTop = function() {

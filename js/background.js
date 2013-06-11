@@ -153,13 +153,19 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
             case "append":
                 switch (msg.type) {
                     case "trash":
-                        if (trash.indexOf(msg.url) < 0) {
-                            trash.push(msg.url);
+                        for (var i in msg.url) {
+                            var url = msg.url[i];
+                            if (trash.indexOf(url) < 0) {
+                                trash.push(url);
+                            }
                         }
                         break;
                     case "like":
-                        if (like.indexOf(msg.url) < 0) {
-                            like.push(msg.url);
+                        for (var i in msg.url) {
+                            var url = msg.url[i];
+                            if (like.indexOf(url) < 0) {
+                                like.push(url);
+                            }
                         }
                         break;
                     default:
@@ -170,15 +176,19 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
                 debugger;
                 switch (msg.type) {
                     case "trash":
-                        var i = trash.indexOf(msg.url);
-                        if (i >= 0) {
-                            trash.splice(i, 1);
+                        for (var i in msg.url) {
+                            var index = trash.indexOf(msg.url[i]);
+                            if (index >= 0) {
+                                trash.splice(index, 1);
+                            }
                         }
                         break;
                     case "like":
-                        var i = like.indexOf(msg.url);
-                        if (i >= 0) {
-                            like.splice(i, 1);
+                        for (var i in msg.url) {
+                            var index = like.indexOf(msg.url[i]);
+                            if (index >= 0) {
+                                like.splice(index, 1);
+                            }
                         }
                         break;
                     default:
