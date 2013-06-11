@@ -9,14 +9,6 @@ $(document).ready(function(){
         return (str.length > len) ? str.substr(0, len) + "..." : str;
     }
 
-	var _add_to_trash = function(url) {
-        chrome.extension.sendMessage({
-            cmd: "append", 
-            type: "trash", 
-            url: url, 
-        });
-	};
-	
 	var _top = function(e) {
         e.addClass("info like");
         if (extend)
@@ -26,22 +18,6 @@ $(document).ready(function(){
 		$("tr.pl:first").after(e);
     };
 	
-	var _add_to_like = function(url) {
-        chrome.extension.sendMessage({
-            cmd: "append",
-            type: "like",
-            url: url
-        });
-	};
-
-    var _remove_from_like = function(url) {
-        chrome.extension.sendMessage({
-            cmd: "remove",
-            type: "like",
-            url: url
-        });
-    };
-
     var addToTrash = function(e) {
         var url = e.find("td.td-subject a").attr("href");
         _add_to_trash(url);
