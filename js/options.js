@@ -2,6 +2,7 @@ $(document).ready(function() {
     var extend = true;
     var like = [];
     var trash = [];
+    var key = [];
 
     var addToTrash = function(url) {
         chrome.extension.sendMessage({cmd: "query", type: "trash", trash: [url]}, function(data) {
@@ -19,6 +20,10 @@ $(document).ready(function() {
                     table.append(tr);
                 }
             }
+
+            $("#trash .icon-remove").click(function() {
+                removeFromTrash($(this).parent().parent());
+            });
         });
         _add_to_trash([url]);
         trash.push(url);
@@ -40,6 +45,10 @@ $(document).ready(function() {
                     table.append(tr);
                 }
             }
+
+            $("#like .icon-remove").click(function() {
+                removeFromLike($(this).parent().parent());
+            });
         });
         _add_to_like([url]);
         like.push(url);
@@ -114,7 +123,7 @@ $(document).ready(function() {
                             }
                         }
                         else {
-                           addToTrash(url); 
+                           addToLike(url); 
                         }
                     }
                 }
@@ -137,6 +146,7 @@ $(document).ready(function() {
         extend = data.extend;
         like = data.like;
         trash = data.trash;
+        key = ['test', 'test', 'test', 'test'];
 
         var len = trash.length;
         if (len > 0) {
@@ -182,6 +192,18 @@ $(document).ready(function() {
                     removeFromLike($(this).parent().parent());
                 });
             });
+        }
+
+        len = key.length;
+        if (len > 0) {
+            var field = $(".key-field");
+            for (var index in key) {
+                var k = key[index];
+                console.log(k);
+                var label = $("<span class='label'></span>");
+                label.text(k);
+                field.append(label);
+            }
         }
     });
 });
