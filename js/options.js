@@ -2,11 +2,11 @@ $(document).ready(function() {
     var extend = true;
     var like = [];
     var trash = [];
-    var key = [];
+    var keys = [];
 
     var addToTrash = function(url) {
         chrome.extension.sendMessage({cmd: "query", type: "trash", trash: [url]}, function(data) {
-            debugger;
+            //debugger;
             var table = $("#trash table");
             for (var index in data) {
                 var info = data[index];
@@ -31,7 +31,7 @@ $(document).ready(function() {
 
     var addToLike = function(url) {
         chrome.extension.sendMessage({cmd: "query", type: "like", like: [url]}, function(data) {
-            debugger; 
+            //debugger; 
             var table = $("#like table");
             for (var index in data) {
                 var info = data[index];
@@ -54,6 +54,23 @@ $(document).ready(function() {
         like.push(url);
     };
 
+    var addToKeys = function(keys) {
+        var field = $(".keys-field");
+        for (var index in keys) {
+            var k = keys[index];
+            var label = $("<span class='label'></span>");
+            label.text(k);
+            label.append("<i class='icon-remove'></i>");
+            field.append(label);
+        }
+        _add_to_keys(keys);
+
+        $("#keys .icon-remove").click(function() {
+            removeFromKeys($(this).parent());
+        });
+    };
+
+
     var removeFromTrash = function(e) {
         var url = e.find("a").attr("href");
         trash.splice(trash.indexOf(url), 1);
@@ -68,34 +85,40 @@ $(document).ready(function() {
         e.remove();
     };
 
+    var removeFromKeys = function(e) {
+        var key = $.trim(e.text());
+        keys.splice(keys.indexOf(key), 1);
+        _remove_from_keys([key]);
+        e.remove();
+    }
+
     $(".nav-tabs a").click(function(e) {
         e.preventDefault();
         $(this).tab("show");
     });
 
-
     $("button").click(function () {
         var ppp = $(this).parent().parent().parent();
-        var url = $.trim(ppp.find("input").val());
+        var input = $.trim(ppp.find("input").val());
 
         switch (ppp.attr("id")) {
             case "trash":
                 if ($(this).hasClass("append")) {
-                    if (url.length > 0) {
-                        if (trash.indexOf(url) >= 0) {
+                    if (input.length > 0) {
+                        if (trash.indexOf(input) >= 0) {
                             alert("这个话题已经在垃圾箱里了。");
                         }
-                        else if (like.indexOf(url) >= 0) {
+                        else if (like.indexOf(input) >= 0) {
                             var r = confirm("你以前收藏了这个话题，是否要把它从收藏夹里删除并扔进垃圾箱？");
                             if (r) {
-                                like.splice(like.indexOf(url), 1);
-                                _remove_from_like([url]);
-                                $("#like table a[href='" + url + "']").parent().parent().remove();
-                                addToTrash(url);
+                                like.splice(like.indexOf(input), 1);
+                                _remove_from_like([input]);
+                                $("#like table a[href='" + input + "']").parent().parent().remove();
+                                addToTrash(input);
                             }
                         }
                         else {
-                           addToTrash(url); 
+                           addToTrash(input); 
                         }
                     }
                 }
@@ -109,21 +132,21 @@ $(document).ready(function() {
                 break;
             case "like":
                 if ($(this).hasClass("append")) {
-                    if (url.length > 0) {
-                        if (like.indexOf(url) >= 0) {
+                    if (input.length > 0) {
+                        if (like.indexOf(input) >= 0) {
                             alert("这个话题已经在收藏夹里了。");
                         }
-                        else if (trash.indexOf(url) >= 0) {
+                        else if (trash.indexOf(input) >= 0) {
                             var r = confirm("你以前屏蔽了这个话题，是否要把它从垃圾箱里删除并加入收藏夹？");
                             if (r) {
-                                trash.splice(trash.indexOf(url), 1);
-                                _remove_from_trash([url]);
-                                $("#trash table a[href='" + url + "']").parent().parent().remove();
-                                addToLike(url);
+                                trash.splice(trash.indexOf(input), 1);
+                                _remove_from_trash([input]);
+                                $("#trash table a[href='" + input + "']").parent().parent().remove();
+                                addToLike(input);
                             }
                         }
                         else {
-                           addToLike(url); 
+                           addToLike(input); 
                         }
                     }
                 }
@@ -135,7 +158,42 @@ $(document).ready(function() {
                     }
                 }
                 break;
-            case "key":
+            case "keys":
+                if ($(this).hasClass("append")) {
+                    if (input.length > 0) {
+                        var input = input.split(/\s+/);
+                        for (var i in input) {
+                            if (keys.indexOf(input[i]) >= 0) {
+                               input.splice(i, 1); 
+                            }
+                        }
+                        addToKeys(input);
+                    }
+                }
+                if ($(this).hasClass("clear")) {
+                    var r = confirm("你确认要清空屏蔽关键词列表吗？");
+                    if (r) {
+                        _remove_from_keys(keys);
+                        $(".keys-field").empty(); 
+                    }
+                }
+                break;
+            default:
+                break;
+        }
+
+        ppp.find("input").removeAttr("value");
+    });
+
+    $(":checkbox").change(function() {
+        var val = ($(this).is(":checked") ? 1 : 0);
+
+        switch ($(this).attr("name")) {
+            case "autoclear":
+                _set_autoclear(val);        
+                break;
+            case "extend":
+                _set_extend(val);
                 break;
             default:
                 break;
@@ -144,9 +202,10 @@ $(document).ready(function() {
 
     chrome.extension.sendMessage({cmd: "all"}, function(data) {
         extend = data.extend;
+        autoclear = data.autoclear;
         like = data.like;
         trash = data.trash;
-        key = ['test', 'test', 'test', 'test'];
+        keys = data.keys;
 
         var len = trash.length;
         if (len > 0) {
@@ -194,16 +253,26 @@ $(document).ready(function() {
             });
         }
 
-        len = key.length;
+        len = keys.length;
         if (len > 0) {
-            var field = $(".key-field");
-            for (var index in key) {
-                var k = key[index];
-                console.log(k);
+            var field = $(".keys-field");
+            for (var index in keys) {
+                var k = keys[index];
                 var label = $("<span class='label'></span>");
                 label.text(k);
+                label.append("<i class='icon-remove'></i>");
                 field.append(label);
             }
+
+            $("#keys .icon-remove").click(function() {
+                removeFromKeys($(this).parent());
+            });
         }
+
+        if (extend)
+            $(":checkbox[name='extend']").attr("checked", true);
+
+        if (autoclear)
+            $(":checkbox[name='autoclear']").attr("checked", true);
     });
 });

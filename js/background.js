@@ -21,7 +21,7 @@ var getHtml = function(url) {
 };
 
 var calcTime = function(str) {
-    debugger;
+    //debugger;
     str = str.split(" ");
     var date = str[0].split("-");
     var time = str[1].split(":");
@@ -84,7 +84,7 @@ getTopicInfo = function(list) {
             }
 
             info.title = $.trim(t.find("table.infobox td.tablecc").text()).substr(3);
-            debugger;
+            //debugger;
             if (info.title.length == 0)
                 info.title = info.topic;
 
@@ -137,7 +137,9 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
         var s = localStorage;
         var like = (!! s.like) ? s.like.split(",") : [];
         var trash = (!! s.trash) ? s.trash.split(",") : [];
-        var extend = (!! s.extend) ? s.extend : 1;
+        var keys = (!! s.keys) ? s.keys.split(",") : [];
+        var extend = (!! s.extend) ? parseInt(s.extend) : 1;
+        var autoclear = (!! s.autoclear) ? parseInt(s.autoclear) : 0;
 
         //当时为什么要这么写呢？可能想为option和myscript提供两套不通的功能吧...
         //但现在似乎没必要就先注释掉好了=_=
@@ -147,6 +149,8 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
                 sendResponse({
                     like: like,
                     trash: trash,
+                    keys: keys,
+                    autoclear: autoclear,
                     extend: extend
                 });
                 break;
@@ -168,12 +172,20 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
                             }
                         }
                         break;
+                    case "keys":
+                        for (var i in msg.keys) {
+                            var k = msg.keys[i];
+                            if (keys.indexOf(k) < 0) {
+                                keys.push(k);
+                            }
+                        }
+                        break;
                     default:
                         break;
                 }
                 break;
             case "remove":
-                debugger;
+                //debugger;
                 switch (msg.type) {
                     case "trash":
                         for (var i in msg.url) {
@@ -188,6 +200,14 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
                             var index = like.indexOf(msg.url[i]);
                             if (index >= 0) {
                                 like.splice(index, 1);
+                            }
+                        }
+                        break;
+                    case "keys":
+                        for (var i in msg.keys) {
+                            var index = keys.indexOf(msg.keys[i]);
+                            if (index >= 0) {
+                                keys.splice(index, 1);
                             }
                         }
                         break;
@@ -207,8 +227,20 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
                         break;
                 }
                 break;
+            case "config":
+                switch (msg.type) {
+                    case "autoclear":
+                        autoclear = msg.autoclear;
+                        break;
+                    case "extend":
+                        extend = msg.extend;
+                        break;
+                    default:
+                        break
+                }
+                break;
             case "clear":
-                trash = like = [];
+                trash = like = keys = [];
                 extend = 1;
                 break;
             default:
@@ -216,6 +248,8 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
         }
         s.trash = trash;
         s.like = like;
+        s.keys = keys;
+        s.autoclear = autoclear;
         s.extend = extend;
         //}
         //else {

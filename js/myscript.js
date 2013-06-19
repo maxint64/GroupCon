@@ -44,7 +44,7 @@ $(document).ready(function(){
             for (var index in data) {
                 var info = data[index];
                 if (!! info) {
-                    debugger;
+                    //debugger;
                     var new_tr = $(tr); 
                     var a = $("<a></a>");
                     a.attr("href", info.url);
@@ -66,7 +66,7 @@ $(document).ready(function(){
                     _top(new_tr);
                 }
                 else {
-                    debugger;
+                    //debugger;
                     console.log("TOPIC INFO NOT FOUND");
                 }
             }
@@ -94,6 +94,7 @@ $(document).ready(function(){
         chrome.extension.sendMessage({cmd: "all"}, function(data) {
             like = data.like;
             trash = data.trash;
+            keys = data.keys;
             extend = data.extend;
 
             $("table.olt").addClass("table table-hover");
@@ -126,21 +127,35 @@ $(document).ready(function(){
             $(".head-nav").css("width", "690px");
             $(".head-nav").append("<button class='btn btn-link cog' style='color:#000000;float:right'><i class='icon-cog'></i>小组控</button>");
 
-            initTop();
-
             $("td.td-subject a").each(function() {
                 if (! $(this).parent().parent().hasClass("info")) {
-                    href = $(this).attr("href");
-                    if (trash.indexOf(href) >= 0 || like.indexOf(href) >= 0)
+                    var href = $(this).attr("href");
+                    var title = $(this).attr("title");
+
+                    if (trash.indexOf(href) >= 0 || like.indexOf(href) >= 0) {
                         $(this).parent().parent().remove();
-                    else
+                        //skip to next
+                        return true;
+                    }
+                    else {                    
+                        for (var i in keys) {
+                            if (title.indexOf(keys[i]) >= 0) {
+                                $(this).parent().parent().remove();
+                                //skip to next
+                                return true;
+                            }
+                        }
                         $(this).before(icon_heart + " " + icon_trash + " ");
+                    }
                 }
             });
             
             $("button.cog").click(function() {
-                chrome.extension.sendMessage({cmd: "clear"});
+                //chrome.extension.sendMessage({cmd: "clear"});
+                window.open(chrome.extension.getURL("html/options.html"));
             });
+
+            initTop();
         });
     };
 
