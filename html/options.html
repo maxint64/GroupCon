@@ -22,7 +22,7 @@
                 <ul class="nav nav-tabs">
                     <li class="active"><a href="#trash">垃圾箱</a></li>
                     <li><a href="#like">收藏夹</a></li>
-                    <li><a href="#key">屏蔽关键词</a></li>
+                    <li><a href="#keys">屏蔽关键词</a></li>
                     <li><a href="#cog">设置</a></li>
                 </ul>
 
@@ -51,20 +51,25 @@
                         </div>
                     </div>
 
-                    <div class="tab-pane row" id="key">
+                    <div class="tab-pane row" id="keys">
                         <div class="span8">
                             <div class="input-append">
                                 <input class="span7" type="text" placeholder="输入想要屏蔽的关键词,多个关键词之间请使用空格分割...">
                                 <button class="btn append" type="button" >添加</button>
                                 <button class="btn clear" type="button" >清空</button>
                             </div>
-                            <div class="key-field">
+                            <div class="keys-field">
                             </div>
                         </div>
                     </div>
                     <div class="tab-pane row" id="cog">
                         <div class="span8">
-                            <h1>cog</h1>
+                            <label class="checkbox">
+                                <input type="checkbox" name="extend" /> 打开“我的小组话题”页面时自动展开收藏夹
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" name="autoclear" /> 自动清理垃圾桶和收藏夹中不存在或已被删除的话题
+                            </label>
                         </div>
                     </div>
                 </div>
