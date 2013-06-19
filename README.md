@@ -8,4 +8,7 @@ uhhhh.....it's still unfinished.
 
 TODO
 ==
-build options page.  
+<s>build basic options page.</s>  
+find & fix bug.  
+review & redesign & rebuild function code.  
+beautify.  
