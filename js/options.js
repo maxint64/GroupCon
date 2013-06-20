@@ -208,48 +208,68 @@ $(document).ready(function() {
         keys = data.keys;
 
         var len = trash.length;
+        var garbage = [];
         if (len > 0) {
             chrome.extension.sendMessage({cmd: "query", type: "trash", trash: trash}, function(data) {
                 var table = $("#trash table");
                 for (var index in data) {
                     var info = data[index];
-                    if (!! info) {
-                        var a = $("<a></a>");
-                        a.attr("href", info.url); 
+                    var a = $("<a></a>");
+                    a.attr("href", info.url); 
+                    if (! info.err)
                         a.text(info.title);
-                        var tr = $("<tr><td></td></tr>");
-                        tr.find("td").append(a);
-                        tr.find("td").append("<i class='icon-remove'></i>");
-                        table.append(tr);
+                    else if (autoclear) {
+                        garbage.push(info.url)
+                        trash.splice(trash.indexOf(info.url), 1);
+                        continue;
                     }
+                    else
+                        a.text("【此话题不存在或已被删除】");
+                    var tr = $("<tr><td></td></tr>");
+                    tr.find("td").append(a);
+                    tr.find("td").append("<i class='icon-remove'></i>");
+                    table.append(tr);
                 }
 
                 $("#trash .icon-remove").click(function() {
                     removeFromTrash($(this).parent().parent());
                 });
+
+                if (autoclear && garbage.length > 0)
+                    _remove_from_trash(garbage);
             });
         }
 
         len = like.length;
+        garbage = [];
         if (len > 0) {
             chrome.extension.sendMessage({cmd: "query", type: "like", like: like}, function(data) {
                 var table = $("#like table");
                 for (var index in data) {
                     var info = data[index];
-                    if (!! info) {
-                        var a = $("<a></a>");
-                        a.attr("href", info.url); 
+                    var a = $("<a></a>");
+                    a.attr("href", info.url); 
+                    if (! info.err)
                         a.text(info.title);
-                        var tr = $("<tr><td></td></tr>");
-                        tr.find("td").append(a);
-                        tr.find("td").append("<i class='icon-remove'></i>");
-                        table.append(tr);
+                    else if (autoclear) {
+                        garbage.push(info.url);
+                        like.splice(like.indexOf(info.url), 1);
+                        continue;
                     }
+                    else
+                        a.text("【此话题不存在或已被删除】");
+                    var tr = $("<tr><td></td></tr>");
+                    tr.find("td").append(a);
+                    tr.find("td").append("<i class='icon-remove'></i>");
+                    table.append(tr);
                 }
 
                 $("#like .icon-remove").click(function() {
                     removeFromLike($(this).parent().parent());
                 });
+
+                if (autoclear && garbage.length > 0)
+                    _remove_from_like(garbage);
             });
         }
 

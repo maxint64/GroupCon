@@ -60,7 +60,7 @@ var calcTime = function(str) {
     }
 };
 
-getTopicInfo = function(list) {
+var getTopicInfo = function(list) {
     var result = [];
 
     for (var index in list) {
@@ -79,7 +79,8 @@ getTopicInfo = function(list) {
 
             //当前topic不存在或已被删除
             if (info.topic.length == 0) {
-                result.push(0);
+                info.err = 1;
+                result.push(info);
                 continue;
             }
 
@@ -109,7 +110,9 @@ getTopicInfo = function(list) {
                         console.log(url + "NOT FOUND");
                         console.log(html);
                     }
-                    result.push(0);
+                    info.err = 1;
+                    result.push(info);
+                    continue;
                 }
             }
             info.reply_num = (page_num-1)*100 + t.find("ul#comments>li").size();
@@ -126,9 +129,12 @@ getTopicInfo = function(list) {
                 console.log(url + " NOT FOUND");
                 console.log(html);
             }
-            result.push(0);
+            info.err = 1;
+            result.push(info);
+            continue;
         }
     }
+
     return result;
 };
 

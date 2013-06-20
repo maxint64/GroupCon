@@ -11,9 +11,9 @@ $(document).ready(function(){
 
 	var _top = function(e) {
         e.addClass("info like");
-        if (extend)
+        if (extend) 
             e.css("display", "table-row");
-        else
+        else 
             e.css("display", "none");
 		$("tr.pl:first").after(e);
     };
@@ -43,7 +43,7 @@ $(document).ready(function(){
             var tr = "<tr class='pl'><td class='td-subject'></td><td class='td-reply' nowrap='nowrap'></td><td class='td-time'></td><td></td></tr>";
             for (var index in data) {
                 var info = data[index];
-                if (!! info) {
+                if (! info.err) {
                     //debugger;
                     var new_tr = $(tr); 
                     var a = $("<a></a>");
