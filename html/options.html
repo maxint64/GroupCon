@@ -15,21 +15,44 @@
             .label {
                 margin-right: 5px;
             }
+
+            h2 {
+                line-height: 30px;
+                display: inline;
+            }
+
+            div.span14 {
+                padding-top: 20px;
+                padding-left: 20px;
+            }
+
+            div.span10 {
+                padding-top: 10px;
+            }
+            
+            .input-append {
+                float: right;
+            }
+
+            table {
+                margin-top: 20px;
+            }
         </style>
     </head>
     <body> 
-        <div class="row" style="margin-top:100px">
-            <div class="span9">
+        <div class="row">
+            <div class="span14 tabbable tabs-left">
                 <ul class="nav nav-tabs">
                     <li class="active"><a href="#trash">垃圾箱</a></li>
                     <li><a href="#like">收藏夹</a></li>
-                    <li><a href="#keys">屏蔽关键词</a></li>
+                    <li><a href="#keys">关键词</a></li>
                     <li><a href="#cog">设置</a></li>
                 </ul>
 
                 <div class="tab-content">
                     <div class="tab-pane active row" id="trash">
-                        <div class="span8">
+                        <div class="span10 offset1">
+                            <h2>垃圾箱</h2>
                             <div class="input-append">
                                 <input class="span7" type="text" placeholder="想扔进垃圾箱的话题链接...">
                                 <button class="btn append" type="button" >添加</button>
@@ -41,7 +64,8 @@
                     </div>
 
                     <div class="tab-pane row" id="like">
-                        <div class="span8">
+                        <div class="span10 offset1">
+                            <h2>收藏夹</h2>
                             <div class="input-append">
                                 <input class="span7" type="text" placeholder="想加入收藏夹的话题链接...">
                                 <button class="btn append" type="button" >添加</button>
@@ -53,18 +77,23 @@
                     </div>
 
                     <div class="tab-pane row" id="keys">
-                        <div class="span8">
+                        <div class="span10 offset1">
+                            <h2>关键词</h2>
                             <div class="input-append">
                                 <input class="span7" type="text" placeholder="输入想要屏蔽的关键词,多个关键词之间请使用空格分割...">
                                 <button class="btn append" type="button" >添加</button>
                                 <button class="btn clear" type="button" >清空</button>
                             </div>
+                            <hr />
                             <div class="keys-field">
                             </div>
                         </div>
                     </div>
+
                     <div class="tab-pane row" id="cog">
-                        <div class="span8">
+                        <div class="span10 offset1">
+                            <h2>设置</h2>
+                            <hr />
                             <label class="checkbox">
                                 <input type="checkbox" name="extend" /> 打开“我的小组话题”页面时自动展开收藏夹
                             </label>

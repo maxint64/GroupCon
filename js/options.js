@@ -10,23 +10,29 @@ $(document).ready(function() {
             var table = $("#trash table");
             for (var index in data) {
                 var info = data[index];
-                if (!! info) {
-                    var a = $("<a></a>");
-                    a.attr("href", info.url); 
+                var a = $("<a></a>");
+                a.attr("href", info.url); 
+                if (! info.err)
                     a.text(info.title);
-                    var tr = $("<tr><td></td></tr>");
-                    tr.find("td").append(a);
-                    tr.find("td").append("<i class='icon-remove'></i>");
-                    table.append(tr);
+                else if (autoclear) {
+                    alert("此话题不存在或已被删除");
+                    return ;
                 }
+                else
+                    a.text("【此话题不存在或已被删除】");
+                var tr = $("<tr><td></td></tr>");
+                tr.find("td").append(a);
+                tr.find("td").append("<i class='icon-remove'></i>");
+                table.append(tr);
             }
 
             $("#trash .icon-remove").click(function() {
                 removeFromTrash($(this).parent().parent());
             });
+
+            _add_to_trash([url]);
+            trash.push(url);
         });
-        _add_to_trash([url]);
-        trash.push(url);
     };
 
     var addToLike = function(url) {
@@ -35,23 +41,29 @@ $(document).ready(function() {
             var table = $("#like table");
             for (var index in data) {
                 var info = data[index];
-                if (!! info) {
-                    var a = $("<a></a>");
-                    a.attr("href", info.url); 
+                var a = $("<a></a>");
+                a.attr("href", info.url); 
+                if (! info.err)
                     a.text(info.title);
-                    var tr = $("<tr><td></td></tr>");
-                    tr.find("td").append(a);
-                    tr.find("td").append("<i class='icon-remove'></i>");
-                    table.append(tr);
+                else if (autoclear) {
+                    alert("此话题不存在或已被删除");
+                    return ;
                 }
+                else
+                    a.text("【此话题不存在或已被删除】");
+                var tr = $("<tr><td></td></tr>");
+                tr.find("td").append(a);
+                tr.find("td").append("<i class='icon-remove'></i>");
+                table.append(tr);
             }
 
             $("#like .icon-remove").click(function() {
                 removeFromLike($(this).parent().parent());
             });
+
+            _add_to_like([url]);
+            like.push(url);
         });
-        _add_to_like([url]);
-        like.push(url);
     };
 
     var addToKeys = function(keys) {
@@ -191,9 +203,11 @@ $(document).ready(function() {
         switch ($(this).attr("name")) {
             case "autoclear":
                 _set_autoclear(val);        
+                autoclear = val;
                 break;
             case "extend":
                 _set_extend(val);
+                extend= val;
                 break;
             default:
                 break;
