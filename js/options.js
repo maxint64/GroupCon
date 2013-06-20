@@ -3,6 +3,7 @@ $(document).ready(function() {
     var like = [];
     var trash = [];
     var keys = [];
+    var icon_remove = "<i class='icon-remove' title='删除'></i>"; 
 
     var addToTrash = function(url) {
         chrome.extension.sendMessage({cmd: "query", type: "trash", trash: [url]}, function(data) {
@@ -22,7 +23,7 @@ $(document).ready(function() {
                     a.text("【此话题不存在或已被删除】");
                 var tr = $("<tr><td></td></tr>");
                 tr.find("td").append(a);
-                tr.find("td").append("<i class='icon-remove' title='删除'></i>");
+                tr.find("td").append(icon_remove);
                 table.append(tr);
             }
 
@@ -53,7 +54,7 @@ $(document).ready(function() {
                     a.text("【此话题不存在或已被删除】");
                 var tr = $("<tr><td></td></tr>");
                 tr.find("td").append(a);
-                tr.find("td").append("<i class='icon-remove' title='删除'></i>");
+                tr.find("td").append(icon_remove);
                 table.append(tr);
             }
 
@@ -241,7 +242,7 @@ $(document).ready(function() {
                         a.text("【此话题不存在或已被删除】");
                     var tr = $("<tr><td></td></tr>");
                     tr.find("td").append(a);
-                    tr.find("td").append("<i class='icon-remove'></i>");
+                    tr.find("td").append(icon_remove);
                     table.append(tr);
                 }
 
@@ -274,7 +275,7 @@ $(document).ready(function() {
                         a.text("【此话题不存在或已被删除】");
                     var tr = $("<tr><td></td></tr>");
                     tr.find("td").append(a);
-                    tr.find("td").append("<i class='icon-remove'></i>");
+                    tr.find("td").append(icon_remove);
                     table.append(tr);
                 }
 
@@ -294,7 +295,7 @@ $(document).ready(function() {
                 var k = keys[index];
                 var label = $("<span class='label'></span>");
                 label.text(k);
-                label.append("<i class='icon-remove'></i>");
+                label.append(icon_remove);
                 field.append(label);
             }
 

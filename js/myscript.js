@@ -83,6 +83,12 @@ $(document).ready(function(){
                 var pp = $(this).parent().parent();
                 addToLike(pp);
             });
+
+            $("i.icon-rheart").click(function() {
+                var pp = $(this).parent().parent();
+                removeFromLike(pp);
+                pp.remove();
+            });
         });
     };
     
