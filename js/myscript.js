@@ -1,9 +1,9 @@
 $(document).ready(function(){
     var booturl = chrome.extension.getURL("css/bootstrap.customized.css");
 
-    var icon_heart = "<i class='icon-heart'></i>";
-    var icon_rheart = "<i class='icon-redheart'></i>";
-    var icon_trash = "<i class='icon-trash'></i>";
+    var icon_heart = "<i class='icon-heart' title='收藏'></i>";
+    var icon_rheart = "<i class='icon-rheart' title='取消收藏'></i>";
+    var icon_trash = "<i class='icon-trash' title='删除'></i>";
 
     var trunc = function(str, len) {
         return (str.length > len) ? str.substr(0, len) + "..." : str;
@@ -29,7 +29,7 @@ $(document).ready(function(){
         _add_to_like([url]);
         var i = e.find("td.td-subject i");
         i.removeClass("icon-heart");
-        i.addClass("icon-redheart");
+        i.addClass("icon-rheart");
         _top(e);
     };
 

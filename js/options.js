@@ -22,7 +22,7 @@ $(document).ready(function() {
                     a.text("【此话题不存在或已被删除】");
                 var tr = $("<tr><td></td></tr>");
                 tr.find("td").append(a);
-                tr.find("td").append("<i class='icon-remove'></i>");
+                tr.find("td").append("<i class='icon-remove' title='删除'></i>");
                 table.append(tr);
             }
 
@@ -53,7 +53,7 @@ $(document).ready(function() {
                     a.text("【此话题不存在或已被删除】");
                 var tr = $("<tr><td></td></tr>");
                 tr.find("td").append(a);
-                tr.find("td").append("<i class='icon-remove'></i>");
+                tr.find("td").append("<i class='icon-remove' title='删除'></i>");
                 table.append(tr);
             }
 
@@ -72,7 +72,7 @@ $(document).ready(function() {
             var k = keys[index];
             var label = $("<span class='label'></span>");
             label.text(k);
-            label.append("<i class='icon-remove'></i>");
+            label.append("<i class='icon-remove' title='删除'></i>");
             field.append(label);
         }
         _add_to_keys(keys);
