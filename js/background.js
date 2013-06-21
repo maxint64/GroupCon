@@ -60,7 +60,7 @@ var calcTime = function(str) {
     }
 };
 
-var getTopicInfo = function(list) {
+var getTopicInfo = function(list, simplify) {
     var result = [];
 
     for (var index in list) {
@@ -89,10 +89,10 @@ var getTopicInfo = function(list) {
             if (info.title.length == 0)
                 info.title = info.topic;
 
-            //if (simplify) {
-            //    result.push(info);
-            //    continue;
-            //}
+            if (simplify) {
+                result.push(info);
+                continue;
+            }
 
             info.group_name = t.find(".group-item .title a").text();
             info.group_url = t.find(".group-item .title a").attr("href");
@@ -224,10 +224,10 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
             case "query":
                 switch (msg.type) {
                     case "like":
-                        sendResponse(getTopicInfo(msg.like));
+                        sendResponse(getTopicInfo(msg.like, msg.simplify));
                         break;
                     case "trash":
-                        sendResponse(getTopicInfo(msg.trash));
+                        sendResponse(getTopicInfo(msg.trash, msg.simplify));
                         break;
                     default:
                         break;

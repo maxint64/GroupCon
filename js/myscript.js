@@ -27,9 +27,16 @@ $(document).ready(function(){
     var addToLike = function(e) {
         var url = e.find("td.td-subject a").attr("href");
         _add_to_like([url]);
-        var i = e.find("td.td-subject i");
+        var i = e.find("td.td-subject i.icon-heart");
         i.removeClass("icon-heart");
         i.addClass("icon-rheart");
+
+        $("i.icon-rheart").click(function() {
+            var pp = $(this).parent().parent();
+            removeFromLike(pp);
+            pp.remove();
+        });
+
         _top(e);
     };
 
@@ -39,7 +46,7 @@ $(document).ready(function(){
     }
 
     var initTop = function() {
-        chrome.extension.sendMessage({cmd: "query", type: "like", like: like}, function(data) {
+        chrome.extension.sendMessage({cmd: "query", type: "like", like: like, simplify: 0}, function(data) {
             var tr = "<tr class='pl'><td class='td-subject'></td><td class='td-reply' nowrap='nowrap'></td><td class='td-time'></td><td></td></tr>";
             for (var index in data) {
                 var info = data[index];

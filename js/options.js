@@ -6,7 +6,7 @@ $(document).ready(function() {
     var icon_remove = "<i class='icon-remove' title='删除'></i>"; 
 
     var addToTrash = function(url) {
-        chrome.extension.sendMessage({cmd: "query", type: "trash", trash: [url]}, function(data) {
+        chrome.extension.sendMessage({cmd: "query", type: "trash", trash: [url], simplify: 1}, function(data) {
             //debugger;
             var table = $("#trash table");
             for (var index in data) {
@@ -37,7 +37,7 @@ $(document).ready(function() {
     };
 
     var addToLike = function(url) {
-        chrome.extension.sendMessage({cmd: "query", type: "like", like: [url]}, function(data) {
+        chrome.extension.sendMessage({cmd: "query", type: "like", like: [url], simplify: 1}, function(data) {
             //debugger; 
             var table = $("#like table");
             for (var index in data) {
@@ -225,7 +225,7 @@ $(document).ready(function() {
         var len = trash.length;
         var garbage = [];
         if (len > 0) {
-            chrome.extension.sendMessage({cmd: "query", type: "trash", trash: trash}, function(data) {
+            chrome.extension.sendMessage({cmd: "query", type: "trash", trash: trash, simplify: 1}, function(data) {
                 var table = $("#trash table");
                 for (var index in data) {
                     var info = data[index];
@@ -258,7 +258,7 @@ $(document).ready(function() {
         len = like.length;
         garbage = [];
         if (len > 0) {
-            chrome.extension.sendMessage({cmd: "query", type: "like", like: like}, function(data) {
+            chrome.extension.sendMessage({cmd: "query", type: "like", like: like, simplify: 1}, function(data) {
                 var table = $("#like table");
                 for (var index in data) {
                     var info = data[index];
