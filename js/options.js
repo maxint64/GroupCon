@@ -7,7 +7,6 @@ $(document).ready(function() {
 
     var addToTrash = function(url) {
         chrome.extension.sendMessage({cmd: "query", type: "trash", trash: [url], simplify: 1}, function(data) {
-            //debugger;
             var table = $("#trash table");
             for (var index in data) {
                 var info = data[index];
@@ -38,7 +37,6 @@ $(document).ready(function() {
 
     var addToLike = function(url) {
         chrome.extension.sendMessage({cmd: "query", type: "like", like: [url], simplify: 1}, function(data) {
-            //debugger; 
             var table = $("#like table");
             for (var index in data) {
                 var info = data[index];
@@ -230,101 +228,96 @@ $(document).ready(function() {
         like = data.like;
         trash = data.trash;
         keys = data.keys;
+        var tmp = 0;
 
         var len = trash.length;
         var garbage = [];
-        if (len > 0) {
-            chrome.extension.sendMessage({cmd: "query", type: "trash", trash: trash, simplify: 1}, function(data) {
-                var table = $("#trash table");
-                for (var index in data) {
-                    var info = data[index];
-                    var a = $("<a></a>");
-                    a.attr("href", info.url); 
-                    if (! info.err)
-                        a.text(info.title);
-                    else if (autoclear) {
-                        garbage.push(info.url)
-                        trash.splice(trash.indexOf(info.url), 1);
-                        continue;
-                    }
-                    else
-                        a.text("【此话题不存在或已被删除】");
-                    var tr = $("<tr><td></td></tr>");
-                    tr.find("td").append(a);
-                    tr.find("td").append(icon_remove);
-                    table.append(tr);
+        chrome.extension.sendMessage({cmd: "query", type: "trash", trash: trash, simplify: 1}, function(data) {
+            var table = $("#trash table");
+            for (var index in data) {
+                var info = data[index];
+                var a = $("<a></a>");
+                a.attr("href", info.url); 
+                if (! info.err)
+                    a.text(info.title);
+                else if (autoclear) {
+                    garbage.push(info.url)
+                    trash.splice(trash.indexOf(info.url), 1);
+                    continue;
                 }
+                else
+                    a.text("【此话题不存在或已被删除】");
+                var tr = $("<tr><td></td></tr>");
+                tr.find("td").append(a);
+                tr.find("td").append(icon_remove);
+                table.append(tr);
+            }
 
-                $("#trash .loading").remove();
-                table.css("visibility", "visible");
+            $("#trash .loading").remove();
+            table.css("visibility", "visible");
 
-                $("#trash .icon-remove").click(function() {
-                    removeFromTrash($(this).parent().parent());
-                });
-
-                if (autoclear && garbage.length > 0)
-                    _remove_from_trash(garbage);
+            $("#trash .icon-remove").click(function() {
+                removeFromTrash($(this).parent().parent());
             });
-        }
+
+            if (autoclear && garbage.length > 0)
+                _remove_from_trash(garbage);
+        });
 
         len = like.length;
         garbage = [];
-        if (len > 0) {
-            chrome.extension.sendMessage({cmd: "query", type: "like", like: like, simplify: 1}, function(data) {
-                var table = $("#like table");
-                for (var index in data) {
-                    var info = data[index];
-                    var a = $("<a></a>");
-                    a.attr("href", info.url); 
-                    if (! info.err)
-                        a.text(info.title);
-                    else if (autoclear) {
-                        garbage.push(info.url);
-                        like.splice(like.indexOf(info.url), 1);
-                        continue;
-                    }
-                    else
-                        a.text("【此话题不存在或已被删除】");
-                    var tr = $("<tr><td></td></tr>");
-                    tr.find("td").append(a);
-                    tr.find("td").append(icon_remove);
-                    table.append(tr);
+        chrome.extension.sendMessage({cmd: "query", type: "like", like: like, simplify: 1}, function(data) {
+            var table = $("#like table");
+            for (var index in data) {
+                var info = data[index];
+                var a = $("<a></a>");
+                a.attr("href", info.url); 
+                if (! info.err)
+                    a.text(info.title);
+                else if (autoclear) {
+                    garbage.push(info.url);
+                    like.splice(like.indexOf(info.url), 1);
+                    continue;
                 }
-
-                $("#like .loading").remove();
-                table.css("visibility", "visible");
-
-                $("#like .icon-remove").click(function() {
-                    removeFromLike($(this).parent().parent());
-                });
-
-                if (autoclear && garbage.length > 0)
-                    _remove_from_like(garbage);
-            });
-        }
-
-        len = keys.length;
-        if (len > 0) {
-            var field = $(".keys-field");
-            for (var index in keys) {
-                var k = keys[index];
-                var label = $("<span class='label' title='点击删除关键词'></span>");
-                label.text(k);
-                field.append(label);
+                else
+                    a.text("【此话题不存在或已被删除】");
+                var tr = $("<tr><td></td></tr>");
+                tr.find("td").append(a);
+                tr.find("td").append(icon_remove);
+                table.append(tr);
             }
 
-            $(".label").mouseover(function() {
-                $(this).addClass("label-important");
+            $("#like .loading").remove();
+            table.css("visibility", "visible");
+
+            $("#like .icon-remove").click(function() {
+                removeFromLike($(this).parent().parent());
             });
 
-            $(".label").mouseout(function() {
-                $(this).removeClass("label-important");
-            });
+            if (autoclear && garbage.length > 0)
+                _remove_from_like(garbage);
+        });
 
-            $(".label").click(function() {
-                removeFromKeys($(this));
-            });
+        len = keys.length;
+        var field = $(".keys-field");
+        for (var index in keys) {
+            var k = keys[index];
+            var label = $("<span class='label' title='点击删除关键词'></span>");
+            label.text(k);
+            field.append(label);
         }
+
+        $(".label").mouseover(function() {
+            $(this).addClass("label-important");
+        });
+
+        $(".label").mouseout(function() {
+            $(this).removeClass("label-important");
+        });
+
+        $(".label").click(function() {
+            removeFromKeys($(this));
+        });
 
         if (extend)
             $(":checkbox[name='extend']").attr("checked", true);

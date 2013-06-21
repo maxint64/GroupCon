@@ -82,6 +82,7 @@ var getTopicInfo = function(list, simplify) {
                 info.err = 1;
                 result.push(info);
                 continue;
+                debugger;
             }
 
             info.title = $.trim(t.find("table.infobox td.tablecc").text()).substr(3);

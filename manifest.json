@@ -12,6 +12,6 @@
         "css": ["css/bootstrap.customized.css"]
     }],
     "permissions": ["background", "contentSettings", "storage", "tabs", "http://www.douban.com/group/topic/*"],
-    "web_accessible_resources": ["img/glyphicons-halflings.png", "css/bootstrap.customized.css"],
+    "web_accessible_resources": ["img/glyphicons-halflings.png", "img/icon-rheart.png", "img/loading.gif", "css/bootstrap.customized.css"],
     "options_page": "html/options.html"
 }
