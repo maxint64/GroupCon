@@ -255,6 +255,9 @@ $(document).ready(function() {
                     table.append(tr);
                 }
 
+                $("#trash .loading").remove();
+                table.css("visibility", "visible");
+
                 $("#trash .icon-remove").click(function() {
                     removeFromTrash($(this).parent().parent());
                 });
@@ -287,6 +290,9 @@ $(document).ready(function() {
                     tr.find("td").append(icon_remove);
                     table.append(tr);
                 }
+
+                $("#like .loading").remove();
+                table.css("visibility", "visible");
 
                 $("#like .icon-remove").click(function() {
                     removeFromLike($(this).parent().parent());

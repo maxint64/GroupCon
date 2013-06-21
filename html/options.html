@@ -21,6 +21,10 @@
                 display: inline;
             }
 
+            hr {
+                margin-bottom: 8px;
+            }
+
             div.span14 {
                 padding-top: 20px;
                 padding-left: 20px;
@@ -34,8 +38,17 @@
                 float: right;
             }
 
+            .loading {
+                background-image: url("../img/loading.gif");
+                background-position: center;
+                background-repeat: no-repeat;
+                height: 40px;
+                margin-left: 0px;
+            }
+
             table {
                 margin-top: 20px;
+                visibility: hidden;
             }
         </style>
     </head>
@@ -58,6 +71,7 @@
                                 <button class="btn append" type="button" >添加</button>
                                 <button class="btn clear" type="button" >清空</button>
                             </div>
+                            <div class="span10 loading"></div>
                             <table class="table table-hover">
                             </table>
                         </div>
@@ -71,6 +85,7 @@
                                 <button class="btn append" type="button" >添加</button>
                                 <button class="btn clear" type="button" >清空</button>
                             </div>
+                            <div class="span10 loading"></div>
                             <table class="table table-hover">
                             </table>
                         </div>
