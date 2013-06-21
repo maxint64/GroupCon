@@ -71,16 +71,25 @@ $(document).ready(function() {
         var field = $(".keys-field");
         for (var index in keys) {
             var k = keys[index];
-            var label = $("<span class='label'></span>");
+            var label = $("<span class='label' title='点击删除关键词'></span>");
             label.text(k);
-            label.append("<i class='icon-remove' title='删除'></i>");
+            label.append(icon-remove);
             field.append(label);
         }
-        _add_to_keys(keys);
 
-        $("#keys .icon-remove").click(function() {
-            removeFromKeys($(this).parent());
+        $(".label").mouseover(function() {
+            $(this).addClass("label-important");
         });
+
+        $(".label").mouseout(function() {
+            $(this).removeClass("label-important");
+        });
+
+        $(".label").click(function() {
+            removeFromKeys($(this));
+        });
+
+        _add_to_keys(keys);
     };
 
 
@@ -293,14 +302,21 @@ $(document).ready(function() {
             var field = $(".keys-field");
             for (var index in keys) {
                 var k = keys[index];
-                var label = $("<span class='label'></span>");
+                var label = $("<span class='label' title='点击删除关键词'></span>");
                 label.text(k);
-                label.append(icon_remove);
                 field.append(label);
             }
 
-            $("#keys .icon-remove").click(function() {
-                removeFromKeys($(this).parent());
+            $(".label").mouseover(function() {
+                $(this).addClass("label-important");
+            });
+
+            $(".label").mouseout(function() {
+                $(this).removeClass("label-important");
+            });
+
+            $(".label").click(function() {
+                removeFromKeys($(this));
             });
         }
 
