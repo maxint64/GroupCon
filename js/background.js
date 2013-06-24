@@ -2,9 +2,17 @@ var DEBUG = false;
 
 var getTopicInfo = function(target, type, list, simplify) {
     var result = [];
+    var msg = {
+        target: target,
+        type: type,
+        result: result
+    };
+
 
     if (list.length == 0) {
-        chrome.extension.sendMessage({target: target, type: type, result: result});
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            chrome.tabs.sendMessage(tabs[0].id, msg);
+        });
         return;
     }
 
@@ -19,20 +27,11 @@ var getTopicInfo = function(target, type, list, simplify) {
             },
             complete: function() {
                 if (result.length == list.length) {
-                    var msg = {
-                        target: target,
-                        type: type,
-                        result: result
-                    };
-
                     if (target == "options")
                         chrome.extension.sendMessage(msg);
                     else {
                         chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                            console.log(tabs);
-                            for (var i in tabs) {
-                                chrome.tabs.sendMessage(tabs[i].id, msg);
-                            }
+                            chrome.tabs.sendMessage(tabs[0].id, msg);
                         });
                     }
                 }
@@ -240,12 +239,14 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
                         console.log("WTF SENDER");
                     }
 
+                    console.log("sender");
+                    console.log(sender.tab);
                     switch (msg.type) {
                         case "like":
-                            getTopicInfo(target, "like", msg.like, msg.simplify);
+                            getTopicInfo(target, msg.type, msg.like, msg.simplify);
                             break;
                         case "trash":
-                            getTopicInfo(target, "trash", msg.trash, msg.simplify);
+                            getTopicInfo(target, msg.type, msg.trash, msg.simplify);
                             break;
                         default:
                             break;

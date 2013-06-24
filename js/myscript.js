@@ -47,7 +47,6 @@ $(document).ready(function(){
     }
 
     chrome.extension.onMessage.addListener(function(msg, sender) {
-        //console.log(msg);
         if (sender.tab) {
             if (sender.tab.url.indexOf("background") && msg.target == "myscript") {
                 var tr = "<tr class='pl'><td class='td-subject'></td>";
