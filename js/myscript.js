@@ -1,5 +1,6 @@
 $(document).ready(function(){
     var booturl = chrome.extension.getURL("css/bootstrap.customized.css");
+    var loading = chrome.extension.getURL("img/loading.gif");
 
     var icon_heart = "<i class='icon-heart' title='收藏'></i>";
     var icon_rheart = "<i class='icon-rheart' title='取消收藏'></i>";
@@ -45,60 +46,73 @@ $(document).ready(function(){
         _remove_from_like([url]);
     }
 
-    var initTop = function() {
-        chrome.extension.sendMessage({cmd: "query", type: "like", like: like, simplify: 0}, function(data) {
-            var tr = "<tr class='pl'><td class='td-subject'></td><td class='td-reply' nowrap='nowrap'></td><td class='td-time'></td><td></td></tr>";
-            for (var index in data) {
-                var info = data[index];
-                if (! info.err) {
-                    //debugger;
-                    var new_tr = $(tr); 
-                    var a = $("<a></a>");
-                    a.attr("href", info.url);
-                    a.attr("title", info.title);
-                    a.text(info.topic);
-                    new_tr.find(".td-subject").append(a);
-                    a.before(icon_rheart + " " + icon_trash + " ");
-                    new_tr.find(".td-reply").text(info.reply_num + "回应");
-                    new_tr.find(".td-time").attr("title", info.last_reply);
-                    new_tr.find(".td-time").text(info.last_reply_ex);
-                    a = $("<a></a>");
-                    a.attr("href", info.group_url);
-                    a.text(trunc(info.group_name, 12));
-                    new_tr.find("td:last").append(a);
-                    if (extend) 
-                        new_tr.css("display", "table-row");
-                    else
-                        new_tr.css("display", "none");
-                    _top(new_tr);
-                }
-                else {
-                    //debugger;
-                    console.log("TOPIC INFO NOT FOUND");
-                }
-            }
+    chrome.extension.onMessage.addListener(function(msg, sender) {
+        //console.log(msg);
+        if (sender.tab) {
+            if (sender.tab.url.indexOf("background") && msg.target == "myscript") {
+                var tr = "<tr class='pl'><td class='td-subject'></td>";
+                tr += "<td class='td-reply' nowrap='nowrap'></td>";
+                tr += "<td class='td-time'></td><td></td></tr>";
 
-            $("i.icon-trash").click(function() {
-                var pp = $(this).parent().parent();
-                if (pp.hasClass("like")) {
+                for (var index in msg.result) {
+                    var info = msg.result[index];
+                    if (! info.err) {
+                        //debugger;
+                        var new_tr = $(tr); 
+                        var a = $("<a></a>");
+                        a.attr("href", info.url);
+                        a.attr("title", info.title);
+                        a.text(info.topic);
+                        new_tr.find(".td-subject").append(a);
+                        a.before(icon_rheart + " " + icon_trash + " ");
+                        new_tr.find(".td-reply").text(info.reply_num + "回应");
+                        new_tr.find(".td-time").attr("title", info.last_reply);
+                        new_tr.find(".td-time").text(info.last_reply_ex);
+                        a = $("<a></a>");
+                        a.attr("href", info.group_url);
+                        a.text(trunc(info.group_name, 12));
+                        new_tr.find("td:last").append(a);
+                        if (extend) 
+                            new_tr.css("display", "table-row");
+                        else
+                            new_tr.css("display", "none");
+                        _top(new_tr);
+                    }
+                    else {
+                        //debugger;
+                        console.log("TOPIC INFO NOT FOUND");
+                    }
+                }
+                
+                var btn = $("img.loadgif").parent();
+                $("img.loadgif").remove();
+                if (extend)
+                    btn.append("<i class='icon-chevron-up'></i>");
+                else
+                    btn.append("<i class='icon-chevron-down'></i>");
+
+                $("i.icon-trash").click(function() {
+                    var pp = $(this).parent().parent();
+                    if (pp.hasClass("like")) {
+                        removeFromLike(pp);
+                    }
+                    addToTrash(pp);
+                });
+
+                $("i.icon-heart").click(function() {
+                    var pp = $(this).parent().parent();
+                    addToLike(pp);
+                });
+
+                $("i.icon-rheart").click(function() {
+                    var pp = $(this).parent().parent();
                     removeFromLike(pp);
-                }
-                addToTrash(pp);
-            });
+                    pp.remove();
+                });
+            }
+        }
+    });
 
-            $("i.icon-heart").click(function() {
-                var pp = $(this).parent().parent();
-                addToLike(pp);
-            });
-
-            $("i.icon-rheart").click(function() {
-                var pp = $(this).parent().parent();
-                removeFromLike(pp);
-                pp.remove();
-            });
-        });
-    };
-    
     var like = [];
     var trash = []; 
     var extend = 1;
@@ -110,15 +124,13 @@ $(document).ready(function(){
             keys = data.keys;
             extend = data.extend;
 
+            //debugger;
             $("table.olt").addClass("table table-hover");
             $("tr.pl:first").before("<tr class='pl control info'><td colspan='4'></td></tr>");
             var btn = "<div style='text-align:center'><style scope>";
             btn += "@import url('" + booturl + "');";
             btn += "</style>";
-            if (extend)
-                btn += "<i class='icon-chevron-up'></i></div>";
-            else
-                btn += "<i class='icon-chevron-down'></i></div>";
+            btn += "<img class='loadgif' src='" + loading + "' />";
             $("tr.pl:first td:first").append(btn);
 
             $("tr.pl.control").click(function() {
@@ -137,8 +149,13 @@ $(document).ready(function(){
                 }
             });
 
+            var cog = $("<button></button>");
+            cog.addClass("btn btn-link cog");
+            cog.css("color", "#000000");
+            cog.css("float", "right");
+            cog.html("<i class='icon-cog'></i>小组控");
             $(".head-nav").css("width", "690px");
-            $(".head-nav").append("<button class='btn btn-link cog' style='color:#000000;float:right'><i class='icon-cog'></i>小组控</button>");
+            $(".head-nav").append(cog);
 
             $("td.td-subject a").each(function() {
                 if (! $(this).parent().parent().hasClass("info")) {
@@ -164,11 +181,10 @@ $(document).ready(function(){
             });
             
             $("button.cog").click(function() {
-                //chrome.extension.sendMessage({cmd: "clear"});
                 window.open(chrome.extension.getURL("html/options.html"));
             });
 
-            initTop();
+            chrome.extension.sendMessage({cmd: "query", type: "like", like: like, simplify: 0});
         });
     };
 

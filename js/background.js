@@ -1,24 +1,45 @@
 var DEBUG = false;
 
-var getHtml = function(url) {
-    return $.ajax({
-        url: url,
-        async: false,
-        success: function(data) {
-            if (DEBUG) {
-                console.log(data);
+var getTopicInfo = function(target, type, list, simplify) {
+    var result = [];
+
+    if (list.length == 0) {
+        chrome.extension.sendMessage({target: target, type: type, result: result});
+        return;
+    }
+
+    for (var i in list) {
+        $.ajax({
+            url: list[i],
+            success: function(html) {
+                result.push(parseHtml(this.url, html, simplify));
+            },
+            error: function() {
+                result.push({err: 1});
+            },
+            complete: function() {
+                if (result.length == list.length) {
+                    var msg = {
+                        target: target,
+                        type: type,
+                        result: result
+                    };
+
+                    if (target == "options")
+                        chrome.extension.sendMessage(msg);
+                    else {
+                        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                            console.log(tabs);
+                            for (var i in tabs) {
+                                chrome.tabs.sendMessage(tabs[i].id, msg);
+                            }
+                        });
+                    }
+                }
             }
-            return data;
-        },
-        error: function(xhr, err_obj) {
-            if (DEBUG) {
-                console.log(xhr);
-                console.log(error);
-            }
-            return 0;
-        }
-    }).responseText;
-};
+        });
+    }
+}
 
 var calcTime = function(str) {
     //debugger;
@@ -60,83 +81,70 @@ var calcTime = function(str) {
     }
 };
 
-var getTopicInfo = function(list, simplify) {
-    var result = [];
+var parseHtml = function(url, html, simplify) {
+    console.log(url);
+    if (!! html) {
+        var info = {};
+        var t = $(html);
+        info.url = url;
+        info.topic = $.trim(t.find("h1").text());
 
-    for (var index in list) {
-        var url = list[index];
-        var html = getHtml(url);
-
-        //GHOST BUG: 之前这里总是报错，在stackoverflow上看到说jQuery不能解析有<head>标签的html,
-        //所以把<body>中的内容取出放在<div>中，但后来又发现就算不这样做也不会报错
-        //html = "<div>" + html.replace(/^[\s\S]*<body.*?>|<\/body>[\s\S]*$/g, '') + "</div>";
-
-        if (!! html) {
-            var info = {};
-            var t = $(html);
-            info.url = url;
-            info.topic = $.trim(t.find("h1").text());
-
-            //当前topic不存在或已被删除
-            if (info.topic.length == 0) {
-                info.err = 1;
-                result.push(info);
-                continue;
-                debugger;
-            }
-
-            info.title = $.trim(t.find("table.infobox td.tablecc").text()).substr(3);
-            //debugger;
-            if (info.title.length == 0)
-                info.title = info.topic;
-
-            if (simplify) {
-                result.push(info);
-                continue;
-            }
-
-            info.group_name = t.find(".group-item .title a").text();
-            info.group_url = t.find(".group-item .title a").attr("href");
-            var page_num = 1;
-            //如果有分页则用最后一页的html替换之前的
-            if (!! t.find(".paginator").size()) {
-                page_num = t.find(".paginator>a:last").text();
-                url += "?start=" + (page_num-1)*100; 
-                html = getHtml(url);
-                if (!! html) {
-                    t = $(html);
-                }
-                else {
-                    if (DEBUG) {
-                        console.log(url + "NOT FOUND");
-                        console.log(html);
-                    }
-                    info.err = 1;
-                    result.push(info);
-                    continue;
-                }
-            }
-            info.reply_num = (page_num-1)*100 + t.find("ul#comments>li").size();
-            info.last_reply = t.find(".pubtime:last").text();
-            info.pub_time = t.find("h3 span.color-green").text();
-            if (info.reply_num == 0)
-                info.last_reply_ex = calcTime(info.pub_time);
-            else
-                info.last_reply_ex = calcTime(info.last_reply);
-            result.push(info);
-        }
-        else {
-            if (DEBUG) {
-                console.log(url + " NOT FOUND");
-                console.log(html);
-            }
+        //当前topic不存在或已被删除
+        if (info.topic.length == 0) {
             info.err = 1;
-            result.push(info);
-            continue;
+            return info;
         }
-    }
 
-    return result;
+        info.title = $.trim(t.find("table.infobox td.tablecc").text()).substr(3);
+        //debugger;
+        if (info.title.length == 0)
+            info.title = info.topic;
+
+        if (simplify) {
+            return info;
+        }
+
+        info.group_name = t.find(".group-item .title a").text();
+        info.group_url = t.find(".group-item .title a").attr("href");
+        var page_num = 1;
+        //如果有分页则用最后一页的html替换之前的
+        if (!! t.find(".paginator").size()) {
+            page_num = t.find(".paginator>a:last").text();
+            url += "?start=" + (page_num-1)*100; 
+            html = $.ajax({
+                url: url,
+                async: false,
+            }).responseText;
+
+            if (!! html) {
+                t = $(html);
+            }
+            else {
+                if (DEBUG) {
+                    console.log(url + "NOT FOUND");
+                    console.log(html);
+                }
+                info.err = 1;
+                return info;
+            }
+        }
+        info.reply_num = (page_num-1)*100 + t.find("ul#comments>li").size();
+        info.last_reply = t.find(".pubtime:last").text();
+        info.pub_time = t.find("h3 span.color-green").text();
+        if (info.reply_num == 0)
+            info.last_reply_ex = calcTime(info.pub_time);
+        else
+            info.last_reply_ex = calcTime(info.last_reply);
+        return info;
+    }
+    else {
+        if (DEBUG) {
+            console.log(url + " NOT FOUND");
+            console.log(html);
+        }
+        info.err = 1;
+        return info;
+    }
 };
 
 chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
@@ -148,119 +156,125 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
         var extend = (!! s.extend) ? parseInt(s.extend) : 1;
         var autoclear = (!! s.autoclear) ? parseInt(s.autoclear) : 0;
 
-        //当时为什么要这么写呢？可能想为option和myscript提供两套不通的功能吧...
-        //但现在似乎没必要就先注释掉好了=_=
-        //if (sender.tab.url.indexOf("options") < 0) {
-        switch (msg.cmd) {
-            case "all":
-                sendResponse({
-                    like: like,
-                    trash: trash,
-                    keys: keys,
-                    autoclear: autoclear,
-                    extend: extend
-                });
-                break;
-            case "append":
-                switch (msg.type) {
-                    case "trash":
-                        for (var i in msg.url) {
-                            var url = msg.url[i];
-                            if (trash.indexOf(url) < 0) {
-                                trash.push(url);
+        //如果是background自己发出的消息则不处理
+        //debugger;
+        if (sender.tab.url.indexOf("background") < 0) {
+            switch (msg.cmd) {
+                case "all":
+                    sendResponse({
+                        like: like,
+                        trash: trash,
+                        keys: keys,
+                        autoclear: autoclear,
+                        extend: extend
+                    });
+                    break;
+                case "append":
+                    switch (msg.type) {
+                        case "trash":
+                            for (var i in msg.url) {
+                                var url = msg.url[i];
+                                if (trash.indexOf(url) < 0) {
+                                    trash.push(url);
+                                }
                             }
-                        }
-                        break;
-                    case "like":
-                        for (var i in msg.url) {
-                            var url = msg.url[i];
-                            if (like.indexOf(url) < 0) {
-                                like.push(url);
+                            break;
+                        case "like":
+                            for (var i in msg.url) {
+                                var url = msg.url[i];
+                                if (like.indexOf(url) < 0) {
+                                    like.push(url);
+                                }
                             }
-                        }
-                        break;
-                    case "keys":
-                        for (var i in msg.keys) {
-                            var k = msg.keys[i];
-                            if (keys.indexOf(k) < 0) {
-                                keys.push(k);
+                            break;
+                        case "keys":
+                            for (var i in msg.keys) {
+                                var k = msg.keys[i];
+                                if (keys.indexOf(k) < 0) {
+                                    keys.push(k);
+                                }
                             }
-                        }
-                        break;
-                    default:
-                        break;
-                }
-                break;
-            case "remove":
-                //debugger;
-                switch (msg.type) {
-                    case "trash":
-                        for (var i in msg.url) {
-                            var index = trash.indexOf(msg.url[i]);
-                            if (index >= 0) {
-                                trash.splice(index, 1);
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case "remove":
+                    //debugger;
+                    switch (msg.type) {
+                        case "trash":
+                            for (var i in msg.url) {
+                                var index = trash.indexOf(msg.url[i]);
+                                if (index >= 0) {
+                                    trash.splice(index, 1);
+                                }
                             }
-                        }
-                        break;
-                    case "like":
-                        for (var i in msg.url) {
-                            var index = like.indexOf(msg.url[i]);
-                            if (index >= 0) {
-                                like.splice(index, 1);
+                            break;
+                        case "like":
+                            for (var i in msg.url) {
+                                var index = like.indexOf(msg.url[i]);
+                                if (index >= 0) {
+                                    like.splice(index, 1);
+                                }
                             }
-                        }
-                        break;
-                    case "keys":
-                        for (var i in msg.keys) {
-                            var index = keys.indexOf(msg.keys[i]);
-                            if (index >= 0) {
-                                keys.splice(index, 1);
+                            break;
+                        case "keys":
+                            for (var i in msg.keys) {
+                                var index = keys.indexOf(msg.keys[i]);
+                                if (index >= 0) {
+                                    keys.splice(index, 1);
+                                }
                             }
-                        }
-                        break;
-                    default:
-                        break;
-                }
-                break;
-            case "query":
-                switch (msg.type) {
-                    case "like":
-                        sendResponse(getTopicInfo(msg.like, msg.simplify));
-                        break;
-                    case "trash":
-                        sendResponse(getTopicInfo(msg.trash, msg.simplify));
-                        break;
-                    default:
-                        break;
-                }
-                break;
-            case "config":
-                switch (msg.type) {
-                    case "autoclear":
-                        autoclear = msg.autoclear;
-                        break;
-                    case "extend":
-                        extend = msg.extend;
-                        break;
-                    default:
-                        break
-                }
-                break;
-            case "clear":
-                trash = like = keys = [];
-                extend = 1;
-                break;
-            default:
-                break;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case "query":
+                    var target;
+                    if (sender.tab.url.indexOf("options") >= 0)
+                        target = "options";
+                    else if (sender.tab.url.indexOf("group") >= 0)
+                        target = "myscript"; 
+                    else {
+                        console.log("WTF SENDER");
+                    }
+
+                    switch (msg.type) {
+                        case "like":
+                            getTopicInfo(target, "like", msg.like, msg.simplify);
+                            break;
+                        case "trash":
+                            getTopicInfo(target, "trash", msg.trash, msg.simplify);
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case "config":
+                    switch (msg.type) {
+                        case "autoclear":
+                            autoclear = msg.autoclear;
+                            break;
+                        case "extend":
+                            extend = msg.extend;
+                            break;
+                        default:
+                            break
+                    }
+                    break;
+                case "clear":
+                    trash = like = keys = [];
+                    extend = 1;
+                    break;
+                default:
+                    break;
+            }
+            s.trash = trash;
+            s.like = like;
+            s.keys = keys;
+            s.autoclear = autoclear;
+            s.extend = extend;
         }
-        s.trash = trash;
-        s.like = like;
-        s.keys = keys;
-        s.autoclear = autoclear;
-        s.extend = extend;
-        //}
-        //else {
-        //    console.log('WTF!');
-        //}
     }
 });
