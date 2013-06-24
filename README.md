@@ -9,6 +9,7 @@ uhhhh.....it's still unfinished.
 TODO
 ==
 <del>build basic options page.</del>  
+<del>review & redesign & rebuild function code.</del>  
 find & fix bug.  
-review & redesign & rebuild function code.  
 beautify.  
+more test.
