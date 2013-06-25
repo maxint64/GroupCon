@@ -62,3 +62,7 @@ var _set_extend = function(extend) {
         extend: extend
     });
 };
+
+var trunc = function(str, len) {
+    return (str.length > len) ? str.substr(0, len) + "..." : str;
+}

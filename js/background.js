@@ -1,18 +1,20 @@
 var DEBUG = false;
 
-var getTopicInfo = function(target, type, list, simplify) {
+var getTopicInfo = function(tabid, msg) {
     var result = [];
-    var msg = {
-        target: target,
-        type: type,
+    var response = {
+        type: msg.type,
         result: result
     };
 
+    var list = [];
+    if (msg.type == "like")
+        list = msg.like;
+    else
+        list = msg.trash;
 
     if (list.length == 0) {
-        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-            chrome.tabs.sendMessage(tabs[0].id, msg);
-        });
+        chrome.tabs.sendMessage(tabid, response);
         return;
     }
 
@@ -20,20 +22,14 @@ var getTopicInfo = function(target, type, list, simplify) {
         $.ajax({
             url: list[i],
             success: function(html) {
-                result.push(parseHtml(this.url, html, simplify));
+                result.push(parseHtml(this.url, html, msg.simplify));
             },
             error: function() {
-                result.push({err: 1});
+                result.push({url: this.url, err: 1});
             },
             complete: function() {
                 if (result.length == list.length) {
-                    if (target == "options")
-                        chrome.extension.sendMessage(msg);
-                    else {
-                        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-                            chrome.tabs.sendMessage(tabs[0].id, msg);
-                        });
-                    }
+                    chrome.tabs.sendMessage(tabid, response);
                 }
             }
         });
@@ -81,7 +77,6 @@ var calcTime = function(str) {
 };
 
 var parseHtml = function(url, html, simplify) {
-    console.log(url);
     if (!! html) {
         var info = {};
         var t = $(html);
@@ -230,27 +225,7 @@ chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
                     }
                     break;
                 case "query":
-                    var target;
-                    if (sender.tab.url.indexOf("options") >= 0)
-                        target = "options";
-                    else if (sender.tab.url.indexOf("group") >= 0)
-                        target = "myscript"; 
-                    else {
-                        console.log("WTF SENDER");
-                    }
-
-                    console.log("sender");
-                    console.log(sender.tab);
-                    switch (msg.type) {
-                        case "like":
-                            getTopicInfo(target, msg.type, msg.like, msg.simplify);
-                            break;
-                        case "trash":
-                            getTopicInfo(target, msg.type, msg.trash, msg.simplify);
-                            break;
-                        default:
-                            break;
-                    }
+                    getTopicInfo(sender.tab.id, msg);
                     break;
                 case "config":
                     switch (msg.type) {

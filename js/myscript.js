@@ -4,12 +4,8 @@ $(document).ready(function(){
 
     var icon_heart = "<i class='icon-heart' title='收藏'></i>";
     var icon_rheart = "<i class='icon-rheart' title='取消收藏'></i>";
-    var icon_trash = "<i class='icon-trash' title='删除'></i>";
-
-    var trunc = function(str, len) {
-        return (str.length > len) ? str.substr(0, len) + "..." : str;
-    }
-
+    var icon_trash = "<i class='icon-trash' title='屏蔽'></i>";
+    
 	var _top = function(e) {
         e.addClass("info like");
         if (extend) 
@@ -48,7 +44,7 @@ $(document).ready(function(){
 
     chrome.extension.onMessage.addListener(function(msg, sender) {
         if (sender.tab) {
-            if (sender.tab.url.indexOf("background") && msg.target == "myscript") {
+            if (sender.tab.url.indexOf("background")) {
                 var tr = "<tr class='pl'><td class='td-subject'></td>";
                 tr += "<td class='td-reply' nowrap='nowrap'></td>";
                 tr += "<td class='td-time'></td><td></td></tr>";

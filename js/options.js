@@ -7,7 +7,7 @@ $(document).ready(function() {
 
     chrome.extension.onMessage.addListener(function(msg, sender) {
         if (sender.tab) {
-            if (sender.tab.url.indexOf("background") && msg.target == "options") {
+            if (sender.tab.url.indexOf("background")) {
                 var garbage = [];
                 var valid = [];
 
@@ -27,7 +27,7 @@ $(document).ready(function() {
                     var a = $("<a></a>");
                     a.attr("href", info.url); 
                     if (! info.err)
-                        a.text(info.title);
+                        a.text(trunc(info.title, 50));
                     else if (autoclear) {
                         var pos = list.indexOf(info.url);
                         if (pos >= 0) {
