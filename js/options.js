@@ -26,22 +26,29 @@ $(document).ready(function() {
                     var info = msg.result[index];
                     var a = $("<a></a>");
                     a.attr("href", info.url); 
-                    if (! info.err)
+                    if (! info.err) {
                         a.text(trunc(info.title, 50));
-                    else if (autoclear) {
+                    }
+                    else if (info.err == "404" && autoclear) {
                         var pos = list.indexOf(info.url);
                         if (pos >= 0) {
                             garbage.push(info.url)
                             list.splice(list.indexOf(info.url), 1);
                         }
 
-                        if (loading.size() == 0)
+                        if (loading.size() == 0) {
                             alert("此话题不存在或已被删除");
+                        }
 
                         continue;
                     }
-                    else
+                    else if (info.err == "403") {
+                        a.text("【呃……请输入验证码】");
+                    }
+                    else {
                         a.text("【此话题不存在或已被删除】");
+                    }
+
                     var tr = $("<tr><td></td></tr>");
                     tr.find("td").append(a);
                     tr.find("td").append(icon_remove);
@@ -63,10 +70,9 @@ $(document).ready(function() {
                         removeFromTrash($(this).parent().parent());
                 });
 
-                debugger;
                 if (loading.size() > 0) {
-                    loading.remove();
                     table.css("visibility", "visible");
+                    loading.remove();
                 }
                 else if (valid.length > 0) {
                     if (msg.type == "like")

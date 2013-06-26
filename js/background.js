@@ -24,8 +24,8 @@ var getTopicInfo = function(tabid, msg) {
             success: function(html) {
                 result.push(parseHtml(this.url, html, msg.simplify));
             },
-            error: function() {
-                result.push({url: this.url, err: 1});
+            error: function(jqXHR) {
+                result.push({url: this.url, err: jqXHR.status});
             },
             complete: function() {
                 if (result.length == list.length) {
@@ -90,7 +90,6 @@ var parseHtml = function(url, html, simplify) {
         }
 
         info.title = $.trim(t.find("table.infobox td.tablecc").text()).substr(3);
-        //debugger;
         if (info.title.length == 0)
             info.title = info.topic;
 
