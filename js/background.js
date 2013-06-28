@@ -1,255 +1,347 @@
 var DEBUG = false;
 
-var getTopicInfo = function(tabid, msg) {
-    var result = [];
-    var response = {
-        type: msg.type,
-        result: result
-    };
+var CONFIG = null;
 
-    var list = [];
-    if (msg.type == "like")
-        list = msg.like;
-    else
-        list = msg.trash;
+function Config() {
+    if (CONFIG === null) {
+        this._storage_ = localStorage;
+        this.prop = ["favorites", "blacklist", "keywords", "autoextend", "autoclear"];
+        this.setItem(this.prop[0], []);
+        this.setItem(this.prop[1], []);
+        this.setItem(this.prop[2], []);
+        this.setItem(this.prop[3], 0);
+        this.setItem(this.prop[4], 0);
+        this._SEPARATOR_ = ",";
 
-    if (list.length == 0) {
-        chrome.tabs.sendMessage(tabid, response);
-        return;
+        CONFIG = this;
     }
 
-    for (var i in list) {
+    return CONFIG;
+}
+
+Config.prototype.getItem = function(property) {
+    var items = this._storage_.getItem(property);
+    var number = Number(items);
+    if (typeof(number) == typeof(0)) {
+        return number;
+    }
+    else {
+        return items.split(this._SEPARATOR_);
+    }
+}
+
+Config.prototype.setItem = function(property, value) {
+    this._storage_.setItem(property, value);
+}
+
+Config.prototype.appendItem = function(property, value) {
+    var items = this.getItem(property);
+    for (var i in value) {
+        var pos = items.indexOf(value[i]);
+        if (pos < 0) {
+            items.push(value[i]);
+        }
+    }
+    this.setItem(property, items);
+}
+
+Config.prototype.removeItem = function(property, value) {
+    var items = this.getItem(property);
+    for (var i in value) {
+        var pos = items.indexOf(value[i]);
+        if (pos >= 0) {
+            items.splice(pos, 1);
+        }
+    }
+    this.setItem(property, items);
+}
+
+Config.prototype.clear = function(property) {
+    this.setItem(property, []);
+}
+
+Config.prototype.favorites = {
+    append: function(url) {
+        this.appendItem(this.prop[0], url);
+    },
+    remove: function(url) {
+        this.removeItem(this.prop[0], url);
+    },
+    clear: function() {
+        this.clear(this.prop[0]);
+    },
+};
+
+Config.prototype.blacklist = {
+    append: function(url) {
+        this.appendItem(this.prop[1], url);
+    },
+    remove: function(url) {
+        this.removeItem(this.prop[1], url);
+    },
+    clear: function() {
+        this.clear(this.pro[1]);
+    },
+};
+
+Config.prototype.keywords = {
+    append: function(words) {
+            this.appendItem(this.prop[2], words);
+    },
+    remove: function(words) {
+            this.removeItem(this.prop[2], words);
+    },
+    clear: function() {
+        this.clear(this.prop[2]);
+    },
+};
+
+Config.prototype.getJSON() {
+    return {
+        favorites: this.getItem(this.prop[0]),
+        blacklist: this.getItem(this.prop[1]),
+        keywords: this.getItem(this.prop[2]),
+        autoexten: this.getItem(this.prop[3]),
+        autoclear: this.getItem(this.prop[4]),
+    };
+}
+
+function TopicBuilder(tabID, args) {
+    this.tabID = tabID;
+    this.urls = args.urls;
+    this.simplified = args.simplified;
+    this.type = args.type
+    this.topics = [];
+}
+
+TopicBuilder.prototype.buildAndSend = function() {
+    var builder = this;
+    var tabID = this.tabID;
+    var urls = builder.urls;
+    var topics = builder.topics;
+    var simplified = simplified;
+
+    if (urls.length == 0) {
+        chrome.extension.sendMessage(tabID, topics);
+    }
+
+    for (var i in urls) {
         $.ajax({
-            url: list[i],
+            url: urls[i],
             success: function(html) {
-                result.push(parseHtml(this.url, html, msg.simplify));
+                topics.push(new Topic(this.url, html).getJSON(simplified));
             },
-            error: function(jqXHR) {
-                result.push({url: this.url, err: jqXHR.status});
+            statusCode: {
+                403: function() {
+                    topic.push(new ErrorTopic(this.url, "【呃……请打开链接输入验证码】"));
+                },
+                404: function() {
+                    topic.push(new ErrorTopic(this.url, "【本话题不存在或已被删除】"));
+                }
             },
             complete: function() {
-                if (result.length == list.length) {
-                    chrome.tabs.sendMessage(tabid, response);
+                if (topics.length == urls.length) {
+                    chrome.extension.sendMessage(tabID, {
+                        type: builder.type, 
+                        topics: topics,
+                    });
                 }
             }
         });
     }
 }
 
-var calcTime = function(str) {
-    //debugger;
-    str = str.split(" ");
-    var date = str[0].split("-");
-    var time = str[1].split(":");
-    var i = parseInt;
-    var now = new Date();
-    var pub = new Date();
-    pub.setFullYear(i(date[0]), i(date[1])-1, i(date[2]));
-    pub.setHours(i(time[0]));
-    pub.setMinutes(i(time[1]));
-    pub.setSeconds(i(time[2]));
-    var diff = i((now.getTime() - pub.getTime())/1000, 10);
+function ErrorTopic(url, msg) {
+    return {
+        url: url,
+        topic: msg,
+        title: msg,
+    };
+}
 
-    //时间差在一小时之内的，显示时间差
-    //在两天内的，显示时间
-    //在一年内的，显示日期
-    //一年以上显示年差
-    if (diff < 1)
-        return "刚刚";
-    else if (diff < 60)
-        return diff + "秒前";
-    else if (diff < 3600)
-        return i(diff/60, 10) + "分钟前";
-    else {
-        if (now.getFullYear() == i(date[0]))
-            if (now.getMonth()+1 == i(date[1]))
-                if (now.getDate() == i(date[2]))
-                    return "今天" + time[0] + ":" + time[1];
-                else if (now.getDate() == i(date[2])+1)
-                    return "昨天" + time[0] + ":" + time[1];
-                else
-                    return date[1] + "-" + date[2];
-            else
-               return date[1] + "-" + date[2];
-        else
-            return now.getFullYear() - i(date[0]) + "年前";
+function Topic(url, html) {
+    this.url = url;
+    this.html = html;
+}
+
+Topic.prototype.getJSON = function(simplified) {
+    this.parseTopicFromHtml(simplified);
+
+    var json = {
+        "url": this.url,
+        "topic": this.topic,
+        "title": this.title,
     }
-};
 
-var parseHtml = function(url, html, simplify) {
-    if (!! html) {
-        var info = {};
-        var t = $(html);
-        info.url = url;
-        info.topic = $.trim(t.find("h1").text());
+    if (! simplified) {
+        json["replyNumber"] = this.replyNumber;
+        json["fromatedLastReplyTime"] = this.formatLastReplyTime();
+        json["groupName"] = this.groupName;
+        json["groupUrl"] = this.groupUrl;
+    }
 
-        //当前topic不存在或已被删除
-        if (info.topic.length == 0) {
-            info.err = 1;
-            return info;
+    return json;
+}
+
+Topic.prototype.parseTopicFromHtml = function(simplified) {
+    try {
+        if (!!! this.html) {
+            throw new Error("INVALID HTML");
         }
 
-        info.title = $.trim(t.find("table.infobox td.tablecc").text()).substr(3);
-        if (info.title.length == 0)
-            info.title = info.topic;
+        var htmlObj = $(this.html);
 
-        if (simplify) {
-            return info;
+        this.topic = $.trim(htmlObj.find("h1").text());
+        this.title = $.trim(htmlObj.find("table.infobox td.tablecc").text()).substr(3);
+        if (this.title.length == 0) {
+            this.title = this.topic;
         }
 
-        info.group_name = t.find(".group-item .title a").text();
-        info.group_url = t.find(".group-item .title a").attr("href");
-        var page_num = 1;
-        //如果有分页则用最后一页的html替换之前的
-        if (!! t.find(".paginator").size()) {
-            page_num = t.find(".paginator>a:last").text();
-            url += "?start=" + (page_num-1)*100; 
-            html = $.ajax({
+        if (simplified) {
+            return;
+        }
+
+        this.groupName = htmlObj.find(".group-item .title a").text();
+        this.groupUrl = htmlObj.find(".group-item .title a").attr("href");
+
+        var pageNumber = 1;
+        if (!! htmlObj.find(".paginator").size()) {
+            pageNumber = htmlObj.find(".paginator>a:last").text();
+
+            var url += "?start=" + (pageNumber - 1)*100; 
+            var html = $.ajax({
                 url: url,
                 async: false,
             }).responseText;
 
             if (!! html) {
-                t = $(html);
+                htmlObj = $(html);
             }
             else {
-                if (DEBUG) {
-                    console.log(url + "NOT FOUND");
-                    console.log(html);
-                }
-                info.err = 1;
-                return info;
+                throw new Error("INVALID HTML");
             }
         }
-        info.reply_num = (page_num-1)*100 + t.find("ul#comments>li").size();
-        info.last_reply = t.find(".pubtime:last").text();
-        info.pub_time = t.find("h3 span.color-green").text();
-        if (info.reply_num == 0)
-            info.last_reply_ex = calcTime(info.pub_time);
-        else
-            info.last_reply_ex = calcTime(info.last_reply);
-        return info;
+
+        this.replyNumber = (pageNumber - 1)*100 + htmlObj.find("ul#comments>li").size();
+        this.lastReplyTime = htmlObj.find(".pubtime:last").text();
+        this.publicTime = htmlObj.find("h3 span.color-green").text();
+
+        return;
+    }
+    catch(err) {
+        console.log(err);
+    }
+};
+
+Topic.prototype.formatLastReplyTime = function() {
+    if (this.replayNumber == 0) {
+        lastReplyTime = this.publicTime;
     }
     else {
-        if (DEBUG) {
-            console.log(url + " NOT FOUND");
-            console.log(html);
+        lastReplyTime = this.lastReplyTime;
+    }
+
+    lastReplyTime = this.lastReplyTime.split(" ");
+    var date = lastReplyTime[0].split("-");
+    var time = lastReplyTime[1].split(":");
+    var i = parseInt;
+    var now = new Date();
+    var publicTime = new Date();
+    publicTime.setFullYear(i(date[0]), i(date[1])-1, i(date[2]);
+    publicTime.setHours(i(time[0]));
+    publicTime.setMinutes(i(time[1]));
+    publicTime.setSeconds(i(time[2]));
+    var diff = i((now.getTime() - publicTime.getTime())/1000, 10);
+
+    //时间差在一小时之内的，显示时间差
+    //在两天内的，显示时间
+    //在一年内的，显示日期
+    //一年以上显示年差
+    if (diff < 1) {
+        return "刚刚";
+    }
+    else if (diff < 60) {
+        return diff + "秒前";
+    }
+    else if (diff < 3600) {
+        return i(diff/60, 10) + "分钟前";
+    }
+    else {
+        if (now.getFullYear() == i(date[0])) {
+            if (now.getMonth() + 1 == i(date[1])) {
+                if (now.getDate() == i(date[2])) {
+                    return "今天" + time[0] + ":" + time[1];
+                }
+                else if (now.getDate() == i(date[2]) + 1) {
+                    return "昨天" + time[0] + ":" + time[1];
+                }
+                else {
+                    return date[1] + "-" + date[2];
+                }
+            }
+            else {
+               return date[1] + "-" + date[2];
+            }
         }
-        info.err = 1;
-        return info;
+        else {
+            return now.getFullYear() - i(date[0]) + "年前";
+        }
     }
 };
 
 chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
     if (sender.tab) {
-        var s = localStorage;
-        var like = (!! s.like) ? s.like.split(",") : [];
-        var trash = (!! s.trash) ? s.trash.split(",") : [];
-        var keys = (!! s.keys) ? s.keys.split(",") : [];
-        var extend = (!! s.extend) ? parseInt(s.extend) : 1;
-        var autoclear = (!! s.autoclear) ? parseInt(s.autoclear) : 0;
+        var config = new Config();
 
-        //如果是background自己发出的消息则不处理
-        //debugger;
         if (sender.tab.url.indexOf("background") < 0) {
-            switch (msg.cmd) {
-                case "all":
-                    sendResponse({
-                        like: like,
-                        trash: trash,
-                        keys: keys,
-                        autoclear: autoclear,
-                        extend: extend
-                    });
-                    break;
-                case "append":
-                    switch (msg.type) {
-                        case "trash":
-                            for (var i in msg.url) {
-                                var url = msg.url[i];
-                                if (trash.indexOf(url) < 0) {
-                                    trash.push(url);
-                                }
+            try {
+                switch (msg.cmd) {
+                    case "init":
+                        sendResponse(config.getJSON());
+                        break;
+                    case "query":
+                        if (!! msg.urls) {
+                            if (typeof(msg.simplified) == typeof(undefined)) {
+                                msg.simplified = 1;
                             }
-                            break;
-                        case "like":
-                            for (var i in msg.url) {
-                                var url = msg.url[i];
-                                if (like.indexOf(url) < 0) {
-                                    like.push(url);
+                            var topicBuilder = new TopicBuilder(sender.tab.id, msg);
+                            topicBuilder.buildAndSend();
+                        }
+                        else {
+                            throw new Error("URLS REQUERIED");
+                        }
+                        break;
+                    case "config":
+                        var pos = config.prop.indexOf(msg.property);
+                        if (pos >= 0) {
+                            if (pos < 3) {
+                                if (typeof(msg.operation) == typeof(undefined)) {
+                                    throw new Error("OPERATION REQUERIED");
                                 }
-                            }
-                            break;
-                        case "keys":
-                            for (var i in msg.keys) {
-                                var k = msg.keys[i];
-                                if (keys.indexOf(k) < 0) {
-                                    keys.push(k);
+                                if (typeof(msg.data) == typeof(undefined)) {
+                                    throw new Error("DATA REQUERIED");
                                 }
+                                config[msg.property][msg.operation](msg.data);
                             }
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                case "remove":
-                    //debugger;
-                    switch (msg.type) {
-                        case "trash":
-                            for (var i in msg.url) {
-                                var index = trash.indexOf(msg.url[i]);
-                                if (index >= 0) {
-                                    trash.splice(index, 1);
-                                }
+                            else if (typeof(msg.value) == typeof(0)) {
+                                config.setItem(msg.property, msg.value);
                             }
-                            break;
-                        case "like":
-                            for (var i in msg.url) {
-                                var index = like.indexOf(msg.url[i]);
-                                if (index >= 0) {
-                                    like.splice(index, 1);
-                                }
+                            else {
+                                throw new Error("INVALID VALUE");
                             }
-                            break;
-                        case "keys":
-                            for (var i in msg.keys) {
-                                var index = keys.indexOf(msg.keys[i]);
-                                if (index >= 0) {
-                                    keys.splice(index, 1);
-                                }
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                case "query":
-                    getTopicInfo(sender.tab.id, msg);
-                    break;
-                case "config":
-                    switch (msg.type) {
-                        case "autoclear":
-                            autoclear = msg.autoclear;
-                            break;
-                        case "extend":
-                            extend = msg.extend;
-                            break;
-                        default:
-                            break
-                    }
-                    break;
-                case "clear":
-                    trash = like = keys = [];
-                    extend = 1;
-                    break;
-                default:
-                    break;
+                        }
+                        else {
+                            throw new Error("UNKNOWN PROPERTY");
+                        }
+                        break;
+                    default:
+                        throw new Error("UNKNOWN COMMAND");
+                        break;
+                }
             }
-            s.trash = trash;
-            s.like = like;
-            s.keys = keys;
-            s.autoclear = autoclear;
-            s.extend = extend;
+            catch(err) {
+                console.log(err);
+            }
         }
     }
 });

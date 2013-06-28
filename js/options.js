@@ -7,7 +7,7 @@ $(document).ready(function() {
 
     chrome.extension.onMessage.addListener(function(msg, sender) {
         if (sender.tab) {
-            if (sender.tab.url.indexOf("background")) {
+            if (sender.tab.url.indexOf("background") >= 0) {
                 var garbage = [];
                 var valid = [];
 
@@ -15,6 +15,7 @@ $(document).ready(function() {
 
                 var table = $("#" + msg.type + " table");
                 var list;
+
                 if (msg.type == "like") {
                     list = like;
                 }
@@ -43,7 +44,7 @@ $(document).ready(function() {
                         continue;
                     }
                     else if (info.err == "403") {
-                        a.text("【呃……请输入验证码】");
+                        a.text("【呃……请点击链接输入验证码】");
                     }
                     else {
                         a.text("【此话题不存在或已被删除】");
@@ -54,27 +55,16 @@ $(document).ready(function() {
                     tr.find("td").append(icon_remove);
                     table.append(tr);
                     valid.push(info.url);
+                    console.log("IN LOOP " + table.find("tr").size());
                 }
-
-                if (autoclear && garbage.length > 0) {
-                    if (msg.type == "like")
-                        _remove_from_like(grabage);
-                    else
-                        _remove_from_trash(garbage);
-                }
-
-                $("#" + msg.type + " .icon-remove").click(function() {
-                    if (msg.type == "like")
-                        removeFromLike($(this).parent().parent());
-                    else
-                        removeFromTrash($(this).parent().parent());
-                });
 
                 if (loading.size() > 0) {
                     table.css("visibility", "visible");
                     loading.remove();
+                    console.log("AFTER LOOP 1");
                 }
-                else if (valid.length > 0) {
+                
+                if (valid.length > 0) {
                     if (msg.type == "like")
                         _add_to_like(valid);
                     else
@@ -82,7 +72,21 @@ $(document).ready(function() {
                     //不能使用concat(),此函数返回一个新数组并不修改原数组
                     for (var i in valid)
                         list.push(valid[i]);
-               }
+                }
+                
+                $("#" + msg.type + " .icon-remove").click(function() {
+                    if (msg.type == "like")
+                        removeFromLike($(this).parent().parent());
+                    else
+                        removeFromTrash($(this).parent().parent());
+                });
+
+                if (autoclear && garbage.length > 0) {
+                    if (msg.type == "like")
+                        _remove_from_like(grabage);
+                    else
+                        _remove_from_trash(garbage);
+                }
             }
         }
     });
