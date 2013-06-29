@@ -1,8 +1,4 @@
-$(document).ready(function() {
-    var extend = true;
-    var like = [];
-    var trash = [];
-    var keys = [];
+$(function() {
     var icon_remove = "<i class='icon-remove' title='删除'></i>"; 
 
     chrome.extension.onMessage.addListener(function(msg, sender) {
@@ -10,17 +6,15 @@ $(document).ready(function() {
             if (sender.tab.url.indexOf("background") >= 0) {
                 var garbage = [];
                 var valid = [];
-
                 var loading = $("#" + msg.type + " .loading");
-
                 var table = $("#" + msg.type + " table");
                 var list;
 
-                if (msg.type == "like") {
-                    list = like;
+                if (msg.type == "favourites") {
+                    list = favourites;
                 }
                 else {
-                    list = trash;
+                    list = blacklist;
                 }
 
                 for (var index in msg.result) {
@@ -65,44 +59,44 @@ $(document).ready(function() {
                 }
                 
                 if (valid.length > 0) {
-                    if (msg.type == "like")
-                        _add_to_like(valid);
+                    if (msg.type == "favourites")
+                        _add_to_favourites(valid);
                     else
-                        _add_to_trash(valid);
+                        _add_to_blacklist(valid);
                     //不能使用concat(),此函数返回一个新数组并不修改原数组
                     for (var i in valid)
                         list.push(valid[i]);
                 }
                 
                 $("#" + msg.type + " .icon-remove").click(function() {
-                    if (msg.type == "like")
+                    if (msg.type == "favourites")
                         removeFromLike($(this).parent().parent());
                     else
                         removeFromTrash($(this).parent().parent());
                 });
 
                 if (autoclear && garbage.length > 0) {
-                    if (msg.type == "like")
-                        _remove_from_like(grabage);
+                    if (msg.type == "favourites")
+                        _remove_from_favourites(grabage);
                     else
-                        _remove_from_trash(garbage);
+                        _remove_from_blacklist(garbage);
                 }
             }
         }
     });
 
     var addToTrash = function(url) {
-        chrome.extension.sendMessage({cmd: "query", type: "trash", trash: [url], simplify: 1});
+        chrome.extension.sendMessage({cmd: "query", type: "blacklist", blacklist: [url], simplify: 1});
     };
 
     var addToLike = function(url) {
-        chrome.extension.sendMessage({cmd: "query", type: "like", like: [url], simplify: 1});
+        chrome.extension.sendMessage({cmd: "query", type: "favourites", favourites: [url], simplify: 1});
     };
 
-    var addToKeys = function(keys) {
-        var field = $(".keys-field");
-        for (var index in keys) {
-            var k = keys[index];
+    var addToKeys = function(keywords) {
+        var field = $(".keywords-field");
+        for (var index in keywords) {
+            var k = keywords[index];
             var label = $("<span class='label' title='点击删除关键词'></span>");
             label.text(k);
             field.append(label);
@@ -120,27 +114,27 @@ $(document).ready(function() {
             removeFromKeys($(this));
         });
 
-        _add_to_keys(keys);
+        _add_to_keywords(keywords);
     };
 
     var removeFromTrash = function(e) {
         var url = e.find("a").attr("href");
-        trash.splice(trash.indexOf(url), 1);
-        _remove_from_trash([url]);
+        blacklist.splice(blacklist.indexOf(url), 1);
+        _remove_from_blacklist([url]);
         e.remove();
     };
 
     var removeFromLike = function(e) {
         var url = e.find("a").attr("href");
-        like.splice(like.indexOf(url), 1);
-        _remove_from_like([url]);
+        favourites.splice(favourites.indexOf(url), 1);
+        _remove_from_favourites([url]);
         e.remove();
     };
 
     var removeFromKeys = function(e) {
         var key = $.trim(e.text());
-        keys.splice(keys.indexOf(key), 1);
-        _remove_from_keys([key]);
+        keywords.splice(keywords.indexOf(key), 1);
+        _remove_from_keywords([key]);
         e.remove();
     }
 
@@ -154,18 +148,18 @@ $(document).ready(function() {
         var input = $.trim(ppp.find("input").val());
 
         switch (ppp.attr("id")) {
-            case "trash":
+            case "blacklist":
                 if ($(this).hasClass("append")) {
                     if (input.length > 0) {
-                        if (trash.indexOf(input) >= 0) {
+                        if (blacklist.indexOf(input) >= 0) {
                             alert("这个话题已经在垃圾箱里了。");
                         }
-                        else if (like.indexOf(input) >= 0) {
+                        else if (favourites.indexOf(input) >= 0) {
                             var r = confirm("你以前收藏了这个话题，是否要把它从收藏夹里删除并扔进垃圾箱？");
                             if (r) {
-                                like.splice(like.indexOf(input), 1);
-                                _remove_from_like([input]);
-                                $("#like table a[href='" + input + "']").parent().parent().remove();
+                                favourites.splice(favourites.indexOf(input), 1);
+                                _remove_from_favourites([input]);
+                                $("#favourites table a[href='" + input + "']").parent().parent().remove();
                                 addToTrash(input);
                             }
                         }
@@ -177,23 +171,23 @@ $(document).ready(function() {
                 if ($(this).hasClass("clear")) {
                     var r = confirm("你确认要清空垃圾箱吗？");
                     if (r) {
-                        _remove_from_trash(trash);
-                        $("#trash table tr").remove();
+                        _remove_from_blacklist(blacklist);
+                        $("#blacklist table tr").remove();
                     }
                 }
                 break;
-            case "like":
+            case "favourites":
                 if ($(this).hasClass("append")) {
                     if (input.length > 0) {
-                        if (like.indexOf(input) >= 0) {
+                        if (favourites.indexOf(input) >= 0) {
                             alert("这个话题已经在收藏夹里了。");
                         }
-                        else if (trash.indexOf(input) >= 0) {
+                        else if (blacklist.indexOf(input) >= 0) {
                             var r = confirm("你以前屏蔽了这个话题，是否要把它从垃圾箱里删除并加入收藏夹？");
                             if (r) {
-                                trash.splice(trash.indexOf(input), 1);
-                                _remove_from_trash([input]);
-                                $("#trash table a[href='" + input + "']").parent().parent().remove();
+                                blacklist.splice(blacklist.indexOf(input), 1);
+                                _remove_from_blacklist([input]);
+                                $("#blacklist table a[href='" + input + "']").parent().parent().remove();
                                 addToLike(input);
                             }
                         }
@@ -205,17 +199,17 @@ $(document).ready(function() {
                 if ($(this).hasClass("clear")) {
                     var r = confirm("你确认要清空收藏夹吗？");
                     if (r) {
-                        _remove_from_like(like);
-                        $("#like table tr").remove();
+                        _remove_from_favourites(favourites);
+                        $("#favourites table tr").remove();
                     }
                 }
                 break;
-            case "keys":
+            case "keywords":
                 if ($(this).hasClass("append")) {
                     if (input.length > 0) {
                         var input = input.split(/\s+/);
                         for (var i in input) {
-                            if (keys.indexOf(input[i]) >= 0) {
+                            if (keywords.indexOf(input[i]) >= 0) {
                                input.splice(i, 1); 
                             }
                         }
@@ -225,8 +219,8 @@ $(document).ready(function() {
                 if ($(this).hasClass("clear")) {
                     var r = confirm("你确认要清空屏蔽关键词列表吗？");
                     if (r) {
-                        _remove_from_keys(keys);
-                        $(".keys-field").empty(); 
+                        _remove_from_keywords(keywords);
+                        $(".keywords-field").empty(); 
                     }
                 }
                 break;
@@ -245,9 +239,9 @@ $(document).ready(function() {
                 _set_autoclear(val);        
                 autoclear = val;
                 break;
-            case "extend":
-                _set_extend(val);
-                extend= val;
+            case "autoextend":
+                _set_autoextend(val);
+                autoextend= val;
                 break;
             default:
                 break;
@@ -255,18 +249,18 @@ $(document).ready(function() {
     });
 
     chrome.extension.sendMessage({cmd: "all"}, function(data) {
-        extend = data.extend;
+        autoextend = data.autoextend;
         autoclear = data.autoclear;
-        like = data.like;
-        trash = data.trash;
-        keys = data.keys;
+        favourites = data.favourites;
+        blacklist = data.blacklist;
+        keywords = data.keywords;
 
-        chrome.extension.sendMessage({cmd: "query", type: "like", like: like, simplify: 1});
-        chrome.extension.sendMessage({cmd: "query", type: "trash", trash: trash, simplify: 1});
+        chrome.extension.sendMessage({cmd: "query", type: "favourites", favourites: favourites, simplify: 1});
+        chrome.extension.sendMessage({cmd: "query", type: "blacklist", blacklist: blacklist, simplify: 1});
 
-        var field = $(".keys-field");
-        for (var index in keys) {
-            var k = keys[index];
+        var field = $(".keywords-field");
+        for (var index in keywords) {
+            var k = keywords[index];
             var label = $("<span class='label' title='点击删除关键词'></span>");
             label.text(k);
             field.append(label);
@@ -284,8 +278,8 @@ $(document).ready(function() {
             removeFromKeys($(this));
         });
 
-        if (extend)
-            $(":checkbox[name='extend']").attr("checked", true);
+        if (autoextend)
+            $(":checkbox[name='autoextend']").attr("checked", true);
 
         if (autoclear)
             $(":checkbox[name='autoclear']").attr("checked", true);
