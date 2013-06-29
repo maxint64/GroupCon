@@ -5,13 +5,13 @@ var CONFIG = null;
 function Config() {
     if (CONFIG === null) {
         this._storage_ = localStorage;
+        this._separator_ = ",";
         this.prop = ["favorites", "blacklist", "keywords", "autoextend", "autoclear"];
         this.setItem(this.prop[0], []);
         this.setItem(this.prop[1], []);
         this.setItem(this.prop[2], []);
         this.setItem(this.prop[3], 0);
         this.setItem(this.prop[4], 0);
-        this._SEPARATOR_ = ",";
 
         CONFIG = this;
     }
@@ -26,13 +26,13 @@ Config.prototype.getItem = function(property) {
         return number;
     }
     else {
-        return items.split(this._SEPARATOR_);
+        return items.split(this._separator_);
     }
-}
+};
 
 Config.prototype.setItem = function(property, value) {
     this._storage_.setItem(property, value);
-}
+};
 
 Config.prototype.appendItem = function(property, value) {
     var items = this.getItem(property);
@@ -43,7 +43,7 @@ Config.prototype.appendItem = function(property, value) {
         }
     }
     this.setItem(property, items);
-}
+};
 
 Config.prototype.removeItem = function(property, value) {
     var items = this.getItem(property);
@@ -54,11 +54,7 @@ Config.prototype.removeItem = function(property, value) {
         }
     }
     this.setItem(property, items);
-}
-
-Config.prototype.clear = function(property) {
-    this.setItem(property, []);
-}
+};
 
 Config.prototype.favorites = {
     append: function(url) {
@@ -68,7 +64,7 @@ Config.prototype.favorites = {
         this.removeItem(this.prop[0], url);
     },
     clear: function() {
-        this.clear(this.prop[0]);
+        this.setItem(this.prop[0], []);
     },
 };
 
@@ -80,7 +76,7 @@ Config.prototype.blacklist = {
         this.removeItem(this.prop[1], url);
     },
     clear: function() {
-        this.clear(this.pro[1]);
+        this.setItem(this.prop[1], []);
     },
 };
 
@@ -92,7 +88,19 @@ Config.prototype.keywords = {
             this.removeItem(this.prop[2], words);
     },
     clear: function() {
-        this.clear(this.prop[2]);
+        this.setItem(this.prop[2], []);
+    },
+};
+
+Config.prototype.autoclear = {
+    set: function(value) {
+        this.setItem(this.prop[3], value);
+    },
+};
+
+Config.prototype.autoextend = {
+    set: function(value) {
+        this.setItem(this.prop[4], value);
     },
 };
 
@@ -101,7 +109,7 @@ Config.prototype.getJSON() {
         favorites: this.getItem(this.prop[0]),
         blacklist: this.getItem(this.prop[1]),
         keywords: this.getItem(this.prop[2]),
-        autoexten: this.getItem(this.prop[3]),
+        autoextend: this.getItem(this.prop[3]),
         autoclear: this.getItem(this.prop[4]),
     };
 }
@@ -168,10 +176,10 @@ Topic.prototype.getJSON = function(simplified) {
     this.parseTopicFromHtml(simplified);
 
     var json = {
-        "url": this.url,
-        "topic": this.topic,
-        "title": this.title,
-    }
+        url: this.url,
+        topic: this.topic,
+        title: this.title,
+    };
 
     if (! simplified) {
         json["replyNumber"] = this.replyNumber;
@@ -244,6 +252,7 @@ Topic.prototype.formatLastReplyTime = function() {
     lastReplyTime = this.lastReplyTime.split(" ");
     var date = lastReplyTime[0].split("-");
     var time = lastReplyTime[1].split(":");
+
     var i = parseInt;
     var now = new Date();
     var publicTime = new Date();
@@ -251,12 +260,12 @@ Topic.prototype.formatLastReplyTime = function() {
     publicTime.setHours(i(time[0]));
     publicTime.setMinutes(i(time[1]));
     publicTime.setSeconds(i(time[2]));
-    var diff = i((now.getTime() - publicTime.getTime())/1000, 10);
 
     //时间差在一小时之内的，显示时间差
     //在两天内的，显示时间
     //在一年内的，显示日期
     //一年以上显示年差
+    var diff = i((now.getTime() - publicTime.getTime())/1000, 10);
     if (diff < 1) {
         return "刚刚";
     }
@@ -289,59 +298,37 @@ Topic.prototype.formatLastReplyTime = function() {
     }
 };
 
-chrome.extension.onMessage.addListener(function(msg, sender, sendResponse) {
-    if (sender.tab) {
-        var config = new Config();
+function MessageProcessor(tabID, msg) {
+    this.tabID = tabID;
+    this.msg = msg;
+}
 
+MessageProcessor.prototype.process = function() {
+    var cmd = this.msg.cmd;
+    this[["process", cmd].join("_")]();
+}
+
+MessageProcessor.prototype.process_all = function() {
+    chrome.extension.sendMessage(this.tabID, new Config().getJSON());
+}
+
+MessageProcessor.prototype.process_query = function() {
+    var msg = this.msg;
+    if (msg.simplified == undefined) {
+        msg.simplified = 1;
+    }
+    new TopicBuilder(this.tabID, msg).buildAndSend();
+}
+
+MessageProcessor.prototype.property_config = function() {
+    var msg = this.msg;
+    new Config()[msg.property][msg.operation](msg.data);
+}
+
+chrome.extension.onMessage.addListener(function(msg, sender) {
+    if (sender.tab) {
         if (sender.tab.url.indexOf("background") < 0) {
-            try {
-                switch (msg.cmd) {
-                    case "init":
-                        sendResponse(config.getJSON());
-                        break;
-                    case "query":
-                        if (!! msg.urls) {
-                            if (typeof(msg.simplified) == typeof(undefined)) {
-                                msg.simplified = 1;
-                            }
-                            var topicBuilder = new TopicBuilder(sender.tab.id, msg);
-                            topicBuilder.buildAndSend();
-                        }
-                        else {
-                            throw new Error("URLS REQUERIED");
-                        }
-                        break;
-                    case "config":
-                        var pos = config.prop.indexOf(msg.property);
-                        if (pos >= 0) {
-                            if (pos < 3) {
-                                if (typeof(msg.operation) == typeof(undefined)) {
-                                    throw new Error("OPERATION REQUERIED");
-                                }
-                                if (typeof(msg.data) == typeof(undefined)) {
-                                    throw new Error("DATA REQUERIED");
-                                }
-                                config[msg.property][msg.operation](msg.data);
-                            }
-                            else if (typeof(msg.value) == typeof(0)) {
-                                config.setItem(msg.property, msg.value);
-                            }
-                            else {
-                                throw new Error("INVALID VALUE");
-                            }
-                        }
-                        else {
-                            throw new Error("UNKNOWN PROPERTY");
-                        }
-                        break;
-                    default:
-                        throw new Error("UNKNOWN COMMAND");
-                        break;
-                }
-            }
-            catch(err) {
-                console.log(err);
-            }
+           new MessageProcessor(sender.tab.id, msg).process();
         }
     }
 });
