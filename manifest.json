@@ -16,9 +16,9 @@
         ],
         "js": [
             "js/jquery.js", 
-            "js/message.js", 
+            "js/lib.js", 
             "js/bootstrap.customized.js",
-            "js/myscript.js"
+            "js/contens.js"
         ],
         "css": [
             "css/bootstrap.customized.css"
