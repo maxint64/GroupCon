@@ -117,7 +117,7 @@ $(function() {
         this.tabID = tabID;
         this.urls = args.urls;
         this.simplified = args.simplified;
-        this.type = args.type
+        this.cmd = args.cmd
         this.topics = [];
     }
 
@@ -126,11 +126,11 @@ $(function() {
         var tabID = this.tabID;
         var urls = builder.urls;
         var topics = builder.topics;
-        var type = builder.type;
+        var cmd = builder.cmd;
         var simplified = simplified;
 
         if (urls.length == 0) {
-            chrome.extension.sendMessage(tabID, new Response(type, topics));
+            chrome.tabs.sendMessage(tabID, new Response(cmd, topics));
         }
 
         for (var i in urls) {
@@ -149,7 +149,7 @@ $(function() {
                 },
                 complete: function() {
                     if (topics.length == urls.length) {
-                        chrome.extension.sendMessage(tabID, new Response(type, topics));
+                        chrome.tabs.sendMessage(tabID, new Response(cmd, topics));
                     }
                 }
             });
@@ -306,7 +306,7 @@ $(function() {
     }
 
     MessageProcessor.prototype.process_all = function() {
-        chrome.extension.sendMessage(this.tabID, new Response(this.msg.cmd, new Config().getJSON()));
+        chrome.tabs.sendMessage(this.tabID, new Response(this.msg.cmd, new Config().getJSON()));
     }
 
     MessageProcessor.prototype.process_query = function() {
@@ -322,15 +322,15 @@ $(function() {
         new Config()[msg.property][msg.operation](msg.data);
     }
 
-    function Response(type, data) {
-        this.type = type;
+    function Response(cmd, data) {
+        this.cmd = cmd;
         this.data = data;
     }
 
     chrome.extension.onMessage.addListener(function(msg, sender) {
         if (sender.tab) {
             if (sender.tab.url.indexOf("background") < 0) {
-                console.log(sender.tab);
+                console.log(sender.tab.id);
                 new MessageProcessor(sender.tab.id, msg).process();
             }
         }
