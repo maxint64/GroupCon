@@ -10,22 +10,17 @@ $(document).ready(function(){
     var extend = 0;
 
     chrome.extension.onMessage.addListener(function(response, sender) {
-        if (sender.tab) {
-            if (sender.tab.url.indexOf("background")) {
-                switch (response.type) {
-                    case "all":
-                        init(response.data);
-                        break;
-                    case "query":
-                        refresh(response.data);
-                        break;
-                    default:
-                        if (debuger) {
-                            console.log(response.type);
-                        }
-                        break;
-                }
-            }
+        console.log(response);
+        switch (response.cmd) {
+            case "all":
+                init(response.data);
+                break;
+            case "query":
+                refresh(response.data);
+                break;
+            default:
+                console.log(response.type);
+                break;
         }
     });
 
@@ -83,7 +78,7 @@ $(document).ready(function(){
         });
     };
     
-    function init(data) {
+    var init = function(data) {
         CONFIG_MANAGER.init(data);
         extend = CONFIG_MANAGER.autoextend.data;
 
@@ -183,7 +178,5 @@ $(document).ready(function(){
         });
 
         chrome.extension.sendMessage(new QueryMessage("favorites", CONFIG_MANAGER.favorites.data));
-    }
-
-    init();
+    };
 });
