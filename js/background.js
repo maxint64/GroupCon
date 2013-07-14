@@ -73,7 +73,7 @@ $(function() {
         },
         remove: function(url) {
             this.removeItem(this.prop[1], url);
-        }
+        },
         clear: function() {
             this.setItem(this.prop[1], []);
         },
@@ -103,7 +103,7 @@ $(function() {
         },
     };
 
-    Config.prototype.getJSON() {
+    Config.prototype.getJSON = function() {
         return {
             favorites: this.getItem(this.prop[0]),
             blacklist: this.getItem(this.prop[1]),
