@@ -1,7 +1,3 @@
-var trunc = function(str, len) {
-    return (str.length > len) ? str.substr(0, len) + "..." : str;
-};
-
 function Message(cmd) {
     this.cmd = cmd;
 }
@@ -20,26 +16,56 @@ function ConfigMessage(property, operation, data) {
     this.data = data;
 }
 
-var _add_to_favourites = function(data) {
-    chrome.extension.sendMessage(new ConfigMessage("favorites", "append", data));
+function Property(name, type) {
+    this.name = name;
+    this.type = type;
+    this.data = (this.type != "simple" ? [] : 0);
+}
+
+Property.prototype.append = function(data) {
+    for (var i in data) {
+        if (this.data.indexOf(data[i]) < 0) {
+            this.data.push(data[i]);
+        }
+    }
+    chrome.extension.sendMessage(new ConfigMessage(this.name, "append", data));
 };
 
-var _add_to_blacklist = function(data) {
-    chrome.extension.sendMessage(new ConfigMessage("blacklist", "append", data));
+Property.prototype.remove = function(data) {
+    for (var i in data) {
+        var index = this.data.indexOf(data[i]);
+        if (index >= 0) {
+            this.data.splice(index, 1);
+        }
+    }
+    chrome.extension.sendMessage(new ConfigMessage(this.name, "remove", data));
 };
 
-var _add_to_keywords = function(data) {
-    chrome.extension.sendMessage(new ConfigMessage("keywords", "append", data));
+Property.prototype.clear = function() {
+    this.data = (this.type != "simple" ? [] : 0);
+    chrome.extension.sendMessage(new ConfigMessage(this.name, "clear"));
 };
 
-var _remove_from_favourites = function(data) {
-    chrome.extension.sendMessage(new ConfigMessage("favorites", "remove", data));
+function ConfigManager() {
+    chrome.extension.sendMessage(new Message("all"));
+}
+
+ConfigManager.prototype.init = function(data) {
+    for (var i in data) {
+        this[i].data = data[i];
+    }
 };
 
-var _remove_from_blacklist = function(data) {
-    chrome.extension.sendMessage(new ConfigMessage("blacklist", "remove", data));
-};
+ConfigManager.prototype.favorites = new Property("favorites");
 
-var _remove_from_keywords = function(data) {
-    chrome.extension.sendMessage(new ConfigMessage("keywords", "remove", data));
+ConfigManager.prototype.blacklist = new Property("blacklist");
+
+ConfigManager.prototype.keywords = new Property("keywords");
+
+ConfigManager.prototype.autoextend = new Property("autoextend", "simple");
+
+ConfigManager.prototype.autoclear = new Property("autoclear", "simple");
+
+var trunc = function(str, len) {
+    return (str.length > len) ? str.substr(0, len) + "..." : str;
 };
