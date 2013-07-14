@@ -1,5 +1,5 @@
 function Message(cmd) {
-    this.cmd = cmd;
+    this.cmd = cmd; 
 }
 
 function QueryMessage(type, urls, simplified) {
@@ -52,7 +52,8 @@ function ConfigManager() {
 
 ConfigManager.prototype.init = function(data) {
     for (var i in data) {
-        this[i].data = data[i];
+        debugger;
+        this[i]["data"] = data[i];
     }
 };
 

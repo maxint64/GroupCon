@@ -18,7 +18,7 @@
             "js/jquery.js", 
             "js/lib.js", 
             "js/bootstrap.customized.js",
-            "js/contens.js"
+            "js/content.js"
         ],
         "css": [
             "css/bootstrap.customized.css"
