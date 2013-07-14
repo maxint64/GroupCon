@@ -130,7 +130,7 @@ $(function() {
         var simplified = simplified;
 
         if (urls.length == 0) {
-            chrome.extension.sendMessage(tabID, new Result(type, topic));
+            chrome.extension.sendMessage(tabID, new Response(type, topic));
         }
 
         for (var i in urls) {
@@ -149,7 +149,7 @@ $(function() {
                 },
                 complete: function() {
                     if (topics.length == urls.length) {
-                        chrome.extension.sendMessage(tabID, new Result(type, topics));
+                        chrome.extension.sendMessage(tabID, new Response(type, topics));
                     }
                 }
             });
@@ -180,6 +180,7 @@ $(function() {
 
         if (! simplified) {
             json["replyNumber"] = this.replyNumber;
+            json["lastReplyTime"] = this.lastReplyTime;
             json["fromatedLastReplyTime"] = this.formatLastReplyTime();
             json["groupName"] = this.groupName;
             json["groupUrl"] = this.groupUrl;
@@ -305,7 +306,7 @@ $(function() {
     }
 
     MessageProcessor.prototype.process_all = function() {
-        chrome.extension.sendMessage(this.tabID, new Result(this.msg.cmd, new Config().getJSON()));
+        chrome.extension.sendMessage(this.tabID, new Response(this.msg.cmd, new Config().getJSON()));
     }
 
     MessageProcessor.prototype.process_query = function() {
@@ -316,14 +317,14 @@ $(function() {
         new TopicBuilder(this.tabID, msg).buildAndSend();
     }
 
-    MessageProcessor.prototype.property_config = function() {
+    MessageProcessor.prototype.process_config= function() {
         var msg = this.msg;
         new Config()[msg.property][msg.operation](msg.data);
     }
 
-    function Result(type, result) {
+    function Response(type, data) {
         this.type = type;
-        this.result = result;
+        this.data = data;
     }
 
     chrome.extension.onMessage.addListener(function(msg, sender) {
