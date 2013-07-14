@@ -130,7 +130,7 @@ $(function() {
         var simplified = simplified;
 
         if (urls.length == 0) {
-            chrome.extension.sendMessage(tabID, new Response(type, topic));
+            chrome.extension.sendMessage(tabID, new Response(type, topics));
         }
 
         for (var i in urls) {
@@ -214,7 +214,7 @@ $(function() {
             if (!! htmlObj.find(".paginator").size()) {
                 pageNumber = htmlObj.find(".paginator>a:last").text();
 
-                var url += "?start=" + (pageNumber - 1)*100; 
+                var url = this.url + "?start=" + (pageNumber - 1)*100; 
                 var html = $.ajax({
                     url: url,
                     async: false,
@@ -330,7 +330,8 @@ $(function() {
     chrome.extension.onMessage.addListener(function(msg, sender) {
         if (sender.tab) {
             if (sender.tab.url.indexOf("background") < 0) {
-               new MessageProcessor(sender.tab.id, msg).process();
+                console.log(sender.tab);
+                new MessageProcessor(sender.tab.id, msg).process();
             }
         }
     });
