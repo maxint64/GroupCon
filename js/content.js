@@ -79,6 +79,7 @@ $(document).ready(function(){
     };
     
     var init = function(data) {
+        debugger;
         CONFIG_MANAGER.init(data);
         extend = CONFIG_MANAGER.autoextend.data;
 
@@ -159,6 +160,7 @@ $(document).ready(function(){
                 var blacklist = CONFIG_MANAGER.blacklist.data;
                 var keywords = CONFIG_MANAGER.keywords.data;
 
+                debugger;
                 if (blacklist.indexOf(href) >= 0 || favorites.indexOf(href) >= 0) {
                     $(this).parent().parent().remove();
                     //skip to next

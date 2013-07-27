@@ -20,12 +20,17 @@ $(function() {
 
     Config.prototype.getItem = function(property) {
         var items = this._storage_.getItem(property);
-        var number = Number(items);
-        if (typeof(number) == typeof(0)) {
-            return number;
+        debugger;
+        if (items.length > 0) {
+            if (isNaN(items)) {
+                return items.split(this._separator_);
+            }
+            else {
+                return Number(items);
+            }
         }
         else {
-            return items.split(this._separator_);
+            return [];
         }
     };
 
@@ -330,7 +335,6 @@ $(function() {
     chrome.extension.onMessage.addListener(function(msg, sender) {
         if (sender.tab) {
             if (sender.tab.url.indexOf("background") < 0) {
-                console.log(sender.tab.id);
                 new MessageProcessor(sender.tab.id, msg).process();
             }
         }
