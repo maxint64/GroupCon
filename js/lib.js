@@ -52,7 +52,6 @@ function ConfigManager() {
 
 ConfigManager.prototype.init = function(data) {
     for (var i in data) {
-        debugger;
         this[i]["data"] = data[i];
     }
 };
@@ -66,6 +65,14 @@ ConfigManager.prototype.keywords = new Property("keywords");
 ConfigManager.prototype.autoextend = new Property("autoextend", "simple");
 
 ConfigManager.prototype.autoclear = new Property("autoclear", "simple");
+
+function ErrorTopic(url, content) {
+    return {
+        url: url,
+        topic: content,
+        title: content,
+    };
+}
 
 var trunc = function(str, len) {
     return (str.length > len) ? str.substr(0, len) + "..." : str;

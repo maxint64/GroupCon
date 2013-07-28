@@ -10,7 +10,6 @@ $(document).ready(function(){
     var extend = 0;
 
     chrome.extension.onMessage.addListener(function(response, sender) {
-        console.log(response);
         switch (response.cmd) {
             case "all":
                 init(response.data);

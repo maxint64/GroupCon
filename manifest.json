@@ -5,6 +5,7 @@
     "background": {
         "scripts": [
             "js/jquery.js", 
+            "js/lib.js",
             "js/background.js"
         ],
         "persistent": false

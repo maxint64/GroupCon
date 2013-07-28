@@ -162,14 +162,6 @@ $(function() {
         }
     }
 
-    function ErrorTopic(url, content) {
-        return {
-            url: url,
-            topic: content,
-            title: content,
-        };
-    }
-
     function Topic(url, html) {
         this.url = url;
         this.html = html;
