@@ -1,4 +1,4 @@
-function Message(cmd) {
+fddunction Message(cmd) {
     this.cmd = cmd; 
 }
 

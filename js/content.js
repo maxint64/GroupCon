@@ -159,7 +159,6 @@ $(document).ready(function(){
                 var blacklist = CONFIG_MANAGER.blacklist.data;
                 var keywords = CONFIG_MANAGER.keywords.data;
 
-                debugger;
                 if (blacklist.indexOf(href) >= 0 || favorites.indexOf(href) >= 0) {
                     $(this).parent().parent().remove();
                     //skip to next
