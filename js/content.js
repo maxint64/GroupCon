@@ -56,30 +56,29 @@ $(document).ready(function(){
         
         var btn = $("img.loadgif").parent();
         $("img.loadgif").remove();
-        btn.append((extend ? icon_chevron_down : icon_chevron_up));
+        btn.append((extend ? icon_chevron_up: icon_chevron_down));
 
         $("i.icon-trash").click(function() {
             var pp = $(this).parent().parent();
             if (pp.hasClass("like")) {
                 removeFromLike(pp);
             }
-            addToTrash(pp);
+            addToBlaclist(pp);
         });
 
         $("i.icon-heart").click(function() {
             var pp = $(this).parent().parent();
-            addToLike(pp);
+            addToFavorites(pp);
         });
 
         $("i.icon-rheart").click(function() {
             var pp = $(this).parent().parent();
-            removeFromLike(pp);
+            removeFromFavorites(pp);
             pp.remove();
         });
     };
     
     var init = function(data) {
-        debugger;
         CONFIG_MANAGER.init(data);
         extend = CONFIG_MANAGER.autoextend.data;
 
