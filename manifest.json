@@ -6,23 +6,23 @@
         "scripts": [
             "js/jquery.js", 
             "js/lib.js",
-            "js/background.js"
+            "js/background.js",
         ],
         "persistent": false
     },
     "content_scripts": [{
         "matches": [
             "http://www.douban.com/group/", 
-            "http://www.douban.com/group/?start=*"
+            "http://www.douban.com/group/?start=*",
         ],
         "js": [
             "js/jquery.js", 
             "js/lib.js", 
             "js/bootstrap.customized.js",
-            "js/content.js"
+            "js/content.js",
         ],
         "css": [
-            "css/bootstrap.customized.css"
+            "css/bootstrap.customized.css",
         ]
     }],
     "permissions": [
@@ -30,14 +30,14 @@
         "background", 
         "contentSettings", 
         "storage", 
-        "http://www.douban.com/group/topic/*"
+        "http://www.douban.com/group/topic/*",
     ],
     "web_accessible_resources": [
         "img/glyphicons-halflings.png", 
         "img/icon-rheart.png", 
         "img/loading.gif", 
         "img/loading.big.gif", 
-        "css/bootstrap.customized.css"
+        "css/bootstrap.customized.css",
     ],
-    "options_page": "html/options.html"
+    "options_page": "html/options.html",
 }
