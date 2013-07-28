@@ -20,7 +20,6 @@ $(function() {
 
     Config.prototype.getItem = function(property) {
         var items = this._storage_.getItem(property);
-        debugger;
         if (items.length > 0) {
             if (isNaN(items)) {
                 return items.split(this._separator_);
