@@ -5,12 +5,11 @@ $(function() {
         if (CONFIG === null) {
             this._storage_ = localStorage;
             this._separator_ = ",";
-            this.prop = ["favorites", "blacklist", "keywords", "autoextend", "autoclear"];
-            this.setItem(this.prop[0], -1);
-            this.setItem(this.prop[1], -1);
-            this.setItem(this.prop[2], -1);
-            this.setItem(this.prop[3], 0);
-            this.setItem(this.prop[4], 0);
+            this.setDefault("favorites", -1);
+            this.setDefault("blacklist", -1);
+            this.setDefault("keywords", -1);
+            this.setDefault("autoextend", 0);
+            this.setDefault("autoclear", 0);
 
             CONFIG = this;
         }
@@ -18,8 +17,12 @@ $(function() {
         return CONFIG;
     }
 
+    Config.prototype.setDefault = function(property, value) {
+        undefined === this._storage_[property] ? this._storage_[property] = value : null;
+    };
+
     Config.prototype.getItem = function(property) {
-        var items = this._storage_.getItem(property);
+        var items = this._storage_[property];
         var number = Number(items);
         if (number < 0) {
             return [];
@@ -33,7 +36,7 @@ $(function() {
     };
 
     Config.prototype.setItem = function(property, value) {
-        this._storage_.setItem(property, value);
+        this._storage_[property] = value;
     };
 
     Config.prototype.appendItem = function(property, value) {
@@ -60,59 +63,59 @@ $(function() {
 
     Config.prototype.favorites = {
         append: function(url) {
-            this.appendItem(this.prop[0], url);
+            CONFIG.appendItem("favorites", url);
         },
         remove: function(url) {
-            this.removeItem(this.prop[0], url);
+            CONFIG.removeItem("favorites", url);
         },
         clear: function() {
-            this.setItem(this.prop[0], []);
+            CONFIG.setItem("favorites", []);
         },
     };
 
     Config.prototype.blacklist = {
         append: function(url) {
-            this.appendItem(this.prop[1], url);
+            CONFIG.appendItem("blacklist", url);
         },
         remove: function(url) {
-            this.removeItem(this.prop[1], url);
+            CONFIG.removeItem("blacklist", url);
         },
         clear: function() {
-            this.setItem(this.prop[1], []);
+            CONFIG.setItem("blacklist", []);
         },
     };
 
     Config.prototype.keywords = {
         append: function(words) {
-                this.appendItem(this.prop[2], words);
+            CONFIG.appendItem("keywords", words);
         },
         remove: function(words) {
-                this.removeItem(this.prop[2], words);
+            CONFIG.removeItem("keywords", words);
         },
         clear: function() {
-            this.setItem(this.prop[2], []);
+            CONFIG.setItem("keywords", []);
         },
     };
 
     Config.prototype.autoclear = {
         set: function(value) {
-            this.setItem(this.prop[3], value);
+            CONFIG.setItem("autoextend", value);
         },
     };
 
     Config.prototype.autoextend = {
         set: function(value) {
-            this.setItem(this.prop[4], value);
+            CONFIG.setItem("autoclear", value);
         },
     };
 
     Config.prototype.getJSON = function() {
         return {
-            favorites: this.getItem(this.prop[0]),
-            blacklist: this.getItem(this.prop[1]),
-            keywords: this.getItem(this.prop[2]),
-            autoextend: this.getItem(this.prop[3]),
-            autoclear: this.getItem(this.prop[4]),
+            favorites: this.getItem("favorites"),
+            blacklist: this.getItem("blacklist"),
+            keywords: this.getItem("keywords"),
+            autoextend: this.getItem("autoextend"),
+            autoclear: this.getItem("autoclear"),
         };
     }
 
