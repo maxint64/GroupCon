@@ -246,7 +246,6 @@ $(function() {
         }
 
         lastReplyTime = this.lastReplyTime.split(" ");
-        debugger;
         var date = lastReplyTime[0].split("-");
         var time = lastReplyTime[1].split(":");
 
