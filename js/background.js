@@ -6,9 +6,9 @@ $(function() {
             this._storage_ = localStorage;
             this._separator_ = ",";
             this.prop = ["favorites", "blacklist", "keywords", "autoextend", "autoclear"];
-            this.setItem(this.prop[0], []);
-            this.setItem(this.prop[1], []);
-            this.setItem(this.prop[2], []);
+            this.setItem(this.prop[0], -1);
+            this.setItem(this.prop[1], -1);
+            this.setItem(this.prop[2], -1);
             this.setItem(this.prop[3], 0);
             this.setItem(this.prop[4], 0);
 
@@ -20,13 +20,12 @@ $(function() {
 
     Config.prototype.getItem = function(property) {
         var items = this._storage_.getItem(property);
-        if (items.length > 0) {
-            if (isNaN(items)) {
-                return items.split(this._separator_);
-            }
-            else {
-                return Number(items);
-            }
+        var number = Number(items);
+        if (number < 0) {
+            return [];
+        }
+        else if (! isNaN(number)) {
+            return number;
         }
         else {
             return items.split(this._separator_);
@@ -252,6 +251,7 @@ $(function() {
         }
 
         lastReplyTime = this.lastReplyTime.split(" ");
+        debugger;
         var date = lastReplyTime[0].split("-");
         var time = lastReplyTime[1].split(":");
 
@@ -334,7 +334,6 @@ $(function() {
     chrome.extension.onMessage.addListener(function(msg, sender) {
         if (sender.tab) {
             if (sender.tab.url.indexOf("background") < 0) {
-                console.log(sender.tab.id);
                 new MessageProcessor(sender.tab.id, msg).process();
             }
         }
