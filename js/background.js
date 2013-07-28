@@ -20,7 +20,6 @@ $(function() {
 
     Config.prototype.getItem = function(property) {
         var items = this._storage_.getItem(property);
-<<<<<<< HEAD
         if (items.length > 0) {
             if (isNaN(items)) {
                 return items.split(this._separator_);
@@ -28,11 +27,6 @@ $(function() {
             else {
                 return Number(items);
             }
-=======
-        var number = Number(items);
-        if (typeof(number) == typeof(0)) {
-            return number;
->>>>>>> parent of 0df903a... fix bug in loading config
         }
         else {
             return items.split(this._separator_);
