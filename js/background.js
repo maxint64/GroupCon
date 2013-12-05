@@ -179,7 +179,7 @@ $(function() {
         if (! simplified) {
             json["replyNumber"] = this.replyNumber;
             json["lastReplyTime"] = this.lastReplyTime;
-            json["fromatedLastReplyTime"] = this.formatLastReplyTime();
+            json["formatedLastReplyTime"] = this.formatLastReplyTime();
             json["groupName"] = this.groupName;
             json["groupUrl"] = this.groupUrl;
         }
