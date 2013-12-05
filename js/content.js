@@ -8,6 +8,8 @@ $(document).ready(function(){
     var icon_chevron_down = "<i class='icon-chevron-down'></i>";
 
     var extend = 0;
+    var truncated_title_length = 18;
+    var truncated_groupname_length = 12;
 
     chrome.extension.onMessage.addListener(function(response, sender) {
         switch (response.cmd) {
@@ -26,7 +28,7 @@ $(document).ready(function(){
     var refresh = function(data) {
         var tr = "<tr class='pl'><td class='td-subject'></td>";
         tr += "<td class='td-reply' nowrap='nowrap'></td>";
-        tr += "<td class='td-time'></td><td></td></tr>";
+        tr += "<td class='td-time' nowrap='nowrap'></td><td></td></tr>";
 
         for (var index in data) {
             var topicObj = data[index];
@@ -35,17 +37,17 @@ $(document).ready(function(){
 
             a.attr("href", topicObj.url);
             a.attr("title", topicObj.title);
-            a.text(topicObj.topic);
+            a.text(trunc(topicObj.topic, truncated_title_length));
 
             if (! (topicObj instanceof ErrorTopic)) {
                 new_tr.find(".td-subject").append(a);
                 a.before(icon_rheart + " " + icon_trash + " ");
                 new_tr.find(".td-reply").text(topicObj.replyNumber+ "回应");
                 new_tr.find(".td-time").attr("title", topicObj.lastReplyTime);
-                new_tr.find(".td-time").text(topicObj.formatLastReplyTime);
+                new_tr.find(".td-time").text(topicObj.formatedLastReplyTime);
                 a = $("<a></a>");
                 a.attr("href", topicObj.groupUrl);
-                a.text(trunc(topicObj.groupName, 12));
+                a.text(trunc(topicObj.groupName, truncated_groupname_length));
                 new_tr.find("td:last").append(a);
             }
 
@@ -175,6 +177,7 @@ $(document).ready(function(){
                             return true;
                         }
                     }
+                    $(this).text(trunc($(this).text(), truncated_title_length));
                     $(this).before(icon_heart + " " + icon_trash + " ");
                 }
             }
