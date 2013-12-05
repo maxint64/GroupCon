@@ -320,6 +320,18 @@ $(function() {
         new Config()[msg.property][msg.operation](msg.data);
     }
 
+    MessageProcessor.prototype.process_options= function() {
+        var optionsUrl = chrome.extension.getURL('html/options.html');
+        chrome.tabs.query({url: optionsUrl}, function(tabs) {
+            if (tabs.length) {
+                chrome.tabs.update(tabs[0].id, {active: true});
+            } 
+            else {
+                chrome.tabs.create({url: optionsUrl});
+            }
+        });
+    }
+
     function Response(cmd, data) {
         this.cmd = cmd;
         this.data = data;

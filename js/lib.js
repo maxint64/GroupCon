@@ -16,6 +16,10 @@ function ConfigMessage(property, operation, data) {
     this.data = data;
 }
 
+function OptionsMessage() {
+    Message.call(this, "options");
+}
+
 function Property(name, type) {
     this.name = name;
     this.type = type;

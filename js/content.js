@@ -100,10 +100,12 @@ $(document).ready(function(){
         cog.css({
             "color": "#000000",
             "float": "right",
-            "padding-right": "0px",
             "line-height": "27px"
         });
         cog.html("<i class='icon-cog'></i>小组控");
+        cog.click(function() {
+            chrome.extension.sendMessage(new OptionsMessage());
+        });
         $(".head-nav").css("width", "600px");
         $(".head-nav").append(cog);
 
