@@ -122,6 +122,7 @@ $(function() {
     function TopicBuilder(tabID, args) {
         this.tabID = tabID;
         this.urls = args.urls;
+        this.type = args.type;
         this.simplified = args.simplified;
         this.cmd = args.cmd
         this.topics = [];
@@ -132,11 +133,11 @@ $(function() {
         var tabID = this.tabID;
         var urls = builder.urls;
         var topics = builder.topics;
-        var cmd = builder.cmd;
-        var simplified = simplified;
+        var simplified = builder.simplified;
+        var header = {"cmd": builder.cmd, "type": builder.type};
 
         if (urls.length == 0) {
-            chrome.tabs.sendMessage(tabID, new Response(cmd, topics));
+            chrome.tabs.sendMessage(tabID, new Response(header, topics));
         }
 
         for (var i in urls) {
@@ -155,7 +156,7 @@ $(function() {
                 },
                 complete: function() {
                     if (topics.length == urls.length) {
-                        chrome.tabs.sendMessage(tabID, new Response(cmd, topics));
+                        chrome.tabs.sendMessage(tabID, new Response(header, topics));
                     }
                 }
             });
@@ -304,13 +305,14 @@ $(function() {
     }
 
     MessageProcessor.prototype.process_all = function() {
-        chrome.tabs.sendMessage(this.tabID, new Response(this.msg.cmd, new Config().getJSON()));
+        var header = {"cmd": this.msg.cmd, "type": "all"};
+        chrome.tabs.sendMessage(this.tabID, new Response(header, new Config().getJSON()));
     }
 
     MessageProcessor.prototype.process_query = function() {
         var msg = this.msg;
         if (msg.simplified === undefined) {
-            msg.simplified = 1;
+            msg.simplified = false;
         }
         new TopicBuilder(this.tabID, msg).buildAndSend();
     }
@@ -332,8 +334,8 @@ $(function() {
         });
     }
 
-    function Response(cmd, data) {
-        this.cmd = cmd;
+    function Response(header, data) {
+        this.header = header;
         this.data = data;
     }
 

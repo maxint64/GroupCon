@@ -20,10 +20,10 @@ function OptionsMessage() {
     Message.call(this, "options");
 }
 
-function Property(name, type) {
+function Property(name, simpleType) {
     this.name = name;
-    this.type = type;
-    this.data = (this.type != "simple" ? [] : 0);
+    this.simpleType = simpleType;
+    this.data = (this.simpleType ? 0 : []);
 }
 
 Property.prototype.append = function(data) {
@@ -46,7 +46,7 @@ Property.prototype.remove = function(data) {
 };
 
 Property.prototype.clear = function() {
-    this.data = (this.type != "simple" ? [] : 0);
+    this.data = (this.simpleType ? 0 : []);
     chrome.extension.sendMessage(new ConfigMessage(this.name, "clear"));
 };
 
@@ -60,15 +60,15 @@ ConfigManager.prototype.init = function(data) {
     }
 };
 
-ConfigManager.prototype.favourites = new Property("favourites");
+ConfigManager.prototype.favourites = new Property("favourites", false);
 
-ConfigManager.prototype.blacklist = new Property("blacklist");
+ConfigManager.prototype.blacklist = new Property("blacklist", false);
 
-ConfigManager.prototype.keywords = new Property("keywords");
+ConfigManager.prototype.keywords = new Property("keywords", false);
 
-ConfigManager.prototype.autoextend = new Property("autoextend", "simple");
+ConfigManager.prototype.autoextend = new Property("autoextend", true);
 
-ConfigManager.prototype.autoclear = new Property("autoclear", "simple");
+ConfigManager.prototype.autoclear = new Property("autoclear", true);
 
 function ErrorTopic(url, content) {
     return {

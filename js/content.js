@@ -12,7 +12,7 @@ $(document).ready(function(){
     var truncated_groupname_length = 12;
 
     chrome.extension.onMessage.addListener(function(response, sender) {
-        switch (response.cmd) {
+        switch (response.header.cmd) {
             case "all":
                 init(response.data);
                 break;
@@ -185,6 +185,7 @@ $(document).ready(function(){
             }
         });
 
-        chrome.extension.sendMessage(new QueryMessage("favourites", CONFIG_MANAGER.favourites.data));
+        chrome.extension.sendMessage(new QueryMessage("favourites",
+                    CONFIG_MANAGER.favourites.data));
     };
 });
