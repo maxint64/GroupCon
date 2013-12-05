@@ -95,10 +95,14 @@ $(document).ready(function(){
 
         var cog = $("<button></button>");
         cog.addClass("btn btn-link cog");
-        cog.css("color", "#000000");
-        cog.css("float", "right");
+        cog.css({
+            "color": "#000000",
+            "float": "right",
+            "padding-right": "0px",
+            "line-height": "27px"
+        });
         cog.html("<i class='icon-cog'></i>小组控");
-        $(".head-nav").css("width", "690px");
+        $(".head-nav").css("width", "600px");
         $(".head-nav").append(cog);
 
         _top = function(e) {
