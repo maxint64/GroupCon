@@ -123,7 +123,7 @@ $(document).ready(function(){
 
         addToFavorites = function(e) {
             var url = e.find("td.td-subject a").attr("href");
-            CONFIG_MANAGER.favorites.append([url]);
+            CONFIG_MANAGER.favourites.append([url]);
             var i = e.find("td.td-subject i.icon-heart");
             i.removeClass("icon-heart");
             i.addClass("icon-rheart");
@@ -139,7 +139,7 @@ $(document).ready(function(){
 
         removeFromFavorites = function(e) {
             var url = e.find("td.td-subject a").attr("href");
-            CONFIG_MANAGER.favorites.remove([url]);
+            CONFIG_MANAGER.favourites.remove([url]);
         };
 
         $("tr.pl.control").click(function() {
@@ -162,11 +162,11 @@ $(document).ready(function(){
             if (! $(this).parent().parent().hasClass("info")) {
                 var href = $(this).attr("href");
                 var title = $(this).attr("title");
-                var favorites = CONFIG_MANAGER.favorites.data;
+                var favourites = CONFIG_MANAGER.favourites.data;
                 var blacklist = CONFIG_MANAGER.blacklist.data;
                 var keywords = CONFIG_MANAGER.keywords.data;
 
-                if (blacklist.indexOf(href) >= 0 || favorites.indexOf(href) >= 0) {
+                if (blacklist.indexOf(href) >= 0 || favourites.indexOf(href) >= 0) {
                     $(this).parent().parent().remove();
                     //skip to next
                     return true;
@@ -185,6 +185,6 @@ $(document).ready(function(){
             }
         });
 
-        chrome.extension.sendMessage(new QueryMessage("favorites", CONFIG_MANAGER.favorites.data));
+        chrome.extension.sendMessage(new QueryMessage("favourites", CONFIG_MANAGER.favourites.data));
     };
 });

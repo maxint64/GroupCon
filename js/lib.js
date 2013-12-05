@@ -60,7 +60,7 @@ ConfigManager.prototype.init = function(data) {
     }
 };
 
-ConfigManager.prototype.favorites = new Property("favorites");
+ConfigManager.prototype.favourites = new Property("favourites");
 
 ConfigManager.prototype.blacklist = new Property("blacklist");
 

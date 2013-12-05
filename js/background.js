@@ -5,7 +5,7 @@ $(function() {
         if (CONFIG === null) {
             this._storage_ = localStorage;
             this._separator_ = ",";
-            this.setDefault("favorites", -1);
+            this.setDefault("favourites", -1);
             this.setDefault("blacklist", -1);
             this.setDefault("keywords", -1);
             this.setDefault("autoextend", 0);
@@ -61,15 +61,15 @@ $(function() {
         this.setItem(property, items);
     };
 
-    Config.prototype.favorites = {
+    Config.prototype.favourites = {
         append: function(url) {
-            CONFIG.appendItem("favorites", url);
+            CONFIG.appendItem("favourites", url);
         },
         remove: function(url) {
-            CONFIG.removeItem("favorites", url);
+            CONFIG.removeItem("favourites", url);
         },
         clear: function() {
-            CONFIG.setItem("favorites", []);
+            CONFIG.setItem("favourites", []);
         },
     };
 
@@ -111,7 +111,7 @@ $(function() {
 
     Config.prototype.getJSON = function() {
         return {
-            favorites: this.getItem("favorites"),
+            favourites: this.getItem("favourites"),
             blacklist: this.getItem("blacklist"),
             keywords: this.getItem("keywords"),
             autoextend: this.getItem("autoextend"),
@@ -309,7 +309,7 @@ $(function() {
 
     MessageProcessor.prototype.process_query = function() {
         var msg = this.msg;
-        if (msg.simplified == undefined) {
+        if (msg.simplified === undefined) {
             msg.simplified = 1;
         }
         new TopicBuilder(this.tabID, msg).buildAndSend();
