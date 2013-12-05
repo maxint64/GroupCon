@@ -238,14 +238,14 @@ $(function() {
     };
 
     Topic.prototype.formatLastReplyTime = function() {
-        if (this.replayNumber == 0) {
+        if (this.replyNumber == 0) {
             lastReplyTime = this.publicTime;
         }
         else {
             lastReplyTime = this.lastReplyTime;
         }
 
-        lastReplyTime = this.lastReplyTime.split(" ");
+        lastReplyTime = lastReplyTime.split(" ");
         var date = lastReplyTime[0].split("-");
         var time = lastReplyTime[1].split(":");
 
