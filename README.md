@@ -7,9 +7,9 @@ version: 0.2
 
 TODO
 ==
-<del>build basic options page.</del>  
-<del>review & redesign & rebuild function code.</del>  
-<del>rebuild options page.</del>  
+~~build basic options page.~~  
+~~review & redesign & rebuild function code.~~
+~~rebuild options page.~~
 find & fix bug.  
 beautify.  
 more test.
