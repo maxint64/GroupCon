@@ -148,10 +148,10 @@ $(function() {
                 },
                 statusCode: {
                     403: function() {
-                        topic.push(new ErrorTopic(this.url, "【呃……请打开链接输入验证码】"));
+                        topics.push(new ErrorTopic(403, this.url, "【呃……请打开链接输入验证码】"));
                     },
                     404: function() {
-                        topic.push(new ErrorTopic(this.url, "【本话题不存在或已被删除】"));
+                        topics.push(new ErrorTopic(404, this.url, "【本话题不存在或已被删除】"));
                     }
                 },
                 complete: function() {

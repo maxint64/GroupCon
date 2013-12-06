@@ -70,8 +70,9 @@ ConfigManager.prototype.autoextend = new Property("autoextend", true);
 
 ConfigManager.prototype.autoclear = new Property("autoclear", true);
 
-function ErrorTopic(url, content) {
+function ErrorTopic(error_code, url, content) {
     return {
+        error_code: error_code,
         url: url,
         topic: content,
         title: content,

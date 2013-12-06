@@ -2,16 +2,18 @@ $(function() {
     var CONFIG_MANAGER = new ConfigManager();
 
     chrome.extension.onMessage.addListener(function(response, sender) {
-        switch (response.header.cmd) {
-            case "all":
-                init(response.data);
-                break;
-            case "query":
-                refresh(response.header.type, response.data);
-                break;
-            default:
-                console.log(response.type);
-                break;
+        if (undefined === sender.tab) {
+            switch (response.header.cmd) {
+                case "all":
+                    init(response.data);
+                    break;
+                case "query":
+                    refresh(response.header.type, response.data);
+                    break;
+                default:
+                    console.log(response.type);
+                    break;
+            }
         }
     });
 
@@ -31,11 +33,11 @@ $(function() {
         var valid = [];
         var loading = $("#" + type + " .loading");
         var table = $("#" + type + " table");
-        var autocalear = CONFIG_MANAGER.autoclear;
+        var autoclear = CONFIG_MANAGER.autoclear.data;
 
         for (var index in data) {
             var topic = data[index];
-            if (topic instanceof ErrorTopic && autoclear) {
+            if (topic.error_code && autoclear) {
                 garbage.push(topic.url)
                 if (loading.size() == 0) {
                     alert("此话题不存在或已被删除");
@@ -75,9 +77,9 @@ $(function() {
 
     var save = function(type, url) {
         CONFIG_MANAGER[type].append([url]);
-        chrome.extension.sendMessage(new QueryMessage(type, url, true));
-    };
-
+        chrome.extension.sendMessage(new QueryMessage(type, [url], true));
+    }; 
+    
     var addToKeywords = function(keywords) {
         var field = $(".keywords-field");
         for (var index in keywords) {
@@ -96,7 +98,7 @@ $(function() {
         });
 
         $(".label").click(function() {
-            removefromkeys($(this));
+            removeFromKeywords($(this));
         });
 
         CONFIG_MANAGER.keywords.append(keywords);
@@ -109,7 +111,7 @@ $(function() {
     }
 
     $(".nav-tabs a").click(function(e) {
-        e.preventdefault();
+        e.preventDefault();
         $(this).tab("show");
     });
 
