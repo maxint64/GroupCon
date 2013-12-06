@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+        <title>小组控 | GroupCon</title>
+        <link rel="stylesheet" href="../css/bootstrap.css" />
+        <script type="text/javascript" src="../js/jquery.js"></script>
+        <script type="text/javascript" src="../js/bootstrap.js"></script>
+        <script type="text/javascript" src="../js/lib.js"></script>
+        <script type="text/javascript" src="../js/options.js"></script>
+        <style type="text/css">
+            .icon-remove {
+                float: right;
+            }
+
+            .label {
+                margin-right: 5px;
+            }
+
+            h2 {
+                line-height: 30px;
+                display: inline;
+            }
+
+            hr {
+                margin-bottom: 8px;
+            }
+
+            div.span14 {
+                padding-top: 20px;
+                padding-left: 20px;
+            }
+
+            div.span10 {
+                padding-top: 10px;
+            }
+            
+            .input-append {
+                float: right;
+            }
+
+            .loading {
+                background-image: url("../img/loading.big.gif");
+                background-position: center;
+                background-repeat: no-repeat;
+                height: 40px;
+                margin-top: 50px;
+                margin-left: 0px;
+            }
+
+            table {
+                margin-top: 20px;
+                visibility: hidden;
+            }
+        </style>
+    </head>
+    <body> 
+        <div class="row">
+            <div class="span14 tabbable tabs-left">
+                <ul class="nav nav-tabs">
+                    <li class="active"><a href="#blacklist">垃圾箱</a></li>
+                    <li><a href="#favourites">收藏夹</a></li>
+                    <li><a href="#keywords">关键词</a></li>
+                    <li><a href="#config">设置</a></li>
+                </ul>
+
+                <div class="tab-content">
+                    <div class="tab-pane active row" id="blacklist">
+                        <div class="span10 offset1">
+                            <h2>垃圾箱</h2>
+                            <div class="input-append">
+                                <input class="span7" type="text" placeholder="想扔进垃圾箱的话题链接...">
+                                <button class="btn append" type="button" >添加</button>
+                                <button class="btn clear" type="button" >清空</button>
+                            </div>
+                            <div class="span10 loading"></div>
+                            <table class="table table-hover">
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane row" id="favourites">
+                        <div class="span10 offset1">
+                            <h2>收藏夹</h2>
+                            <div class="input-append">
+                                <input class="span7" type="text" placeholder="想加入收藏夹的话题链接...">
+                                <button class="btn append" type="button" >添加</button>
+                                <button class="btn clear" type="button" >清空</button>
+                            </div>
+                            <div class="span10 loading"></div>
+                            <table class="table table-hover">
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane row" id="keywords">
+                        <div class="span10 offset1">
+                            <h2>关键词</h2>
+                            <div class="input-append">
+                                <input class="span7" type="text" placeholder="输入想要屏蔽的关键词,多个关键词之间请使用空格分割...">
+                                <button class="btn append" type="button" >添加</button>
+                                <button class="btn clear" type="button" >清空</button>
+                            </div>
+                            <hr />
+                            <div class="keywords-field">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="tab-pane row" id="config">
+                        <div class="span10 offset1">
+                            <h2>设置</h2>
+                            <hr />
+                            <label class="checkbox">
+                                <input type="checkbox" name="autoextend" /> 打开“我的小组话题”页面时自动展开收藏夹
+                            </label>
+                            <label class="checkbox">
+                                <input type="checkbox" name="autoclear" /> 自动清理垃圾桶和收藏夹中不存在或已被删除的话题
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
