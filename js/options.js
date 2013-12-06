@@ -11,7 +11,6 @@ $(function() {
                     refresh(response.header.type, response.data);
                     break;
                 default:
-                    console.log(response.type);
                     break;
             }
         }
@@ -21,11 +20,19 @@ $(function() {
     var init = function(data) {
         CONFIG_MANAGER.init(data);
 
+        if (CONFIG_MANAGER.autoclear.data) {
+            $(":checkbox[name='autoclear']").attr("checked", "checked");
+        }
+        if (CONFIG_MANAGER.autoextend.data) {
+            $(":checkbox[name='autoextend']").attr("checked", "checked");
+        }
+
+        addToKeywords(CONFIG_MANAGER.keywords.data);
+
         chrome.extension.sendMessage(new QueryMessage("favourites",
                     CONFIG_MANAGER.favourites.data, true));
         chrome.extension.sendMessage(new QueryMessage("blacklist", 
                     CONFIG_MANAGER.blacklist.data, true));
-        addToKeywords(CONFIG_MANAGER.keywords.data);
     };
 
     var refresh = function(type, data) {
@@ -90,18 +97,16 @@ $(function() {
         }
 
         $(".label").mouseover(function() {
-            $(this).addclass("label-important");
+            $(this).addClass("label-important");
         });
 
         $(".label").mouseout(function() {
-            $(this).removeclass("label-important");
+            $(this).removeClass("label-important");
         });
 
         $(".label").click(function() {
             removeFromKeywords($(this));
         });
-
-        CONFIG_MANAGER.keywords.append(keywords);
     };
 
     var removeFromKeywords = function(e) {
@@ -121,26 +126,26 @@ $(function() {
 
         switch (ppp.attr("id")) {
             case "blacklist":
-                if ($(this).hasclass("append")) {
+                if ($(this).hasClass("append")) {
                     if (input.length > 0) {
-                        if (CONFIG_MANAGER.blacklist.data.indexof(input) >= 0) {
+                        if (CONFIG_MANAGER.blacklist.data.indexOf(input) >= 0) {
                             alert("这个话题已经在垃圾箱里了。");
                         }
-                        else if (CONFIG_MANAGER.favourites.data.indexof(input) >= 0) {
+                        else if (CONFIG_MANAGER.favourites.data.indexOf(input) >= 0) {
                             var r = confirm("你以前收藏了这个话题，是否要把它从收藏夹里删除并扔进垃圾箱？");
                             if (r) {
                                 CONFIG_MANAGER.favourites.remove([input]);
                                 $("#favourites table a[href='" + input + "']").parent().parent().remove();
                                 CONFIG_MANAGER.blacklist.append([input]);
-                                addToBlacklist(input);
+                                save("blacklist", input);
                             }
                         }
                         else {
-                            addToBlacklist(input); 
+                            save("blacklist", input);
                         }
                     }
                 }
-                if ($(this).hasclass("clear")) {
+                if ($(this).hasClass("clear")) {
                     var r = confirm("你确认要清空垃圾箱吗？");
                     if (r) {
                         CONFIG_MANAGER.blacklist.clear();
@@ -149,26 +154,25 @@ $(function() {
                 }
                 break;
             case "favourites":
-                if ($(this).hasclass("append")) {
+                if ($(this).hasClass("append")) {
                     if (input.length > 0) {
-                        if (favourites.indexof(input) >= 0) {
+                        if (CONFIG_MANAGER.favourites.data.indexOf(input) >= 0) {
                             alert("这个话题已经在收藏夹里了。");
                         }
-                        else if (blacklist.indexof(input) >= 0) {
+                        else if (CONFIG_MANAGER.blacklist.data.indexOf(input) >= 0) {
                             var r = confirm("你以前屏蔽了这个话题，是否要把它从垃圾箱里删除并加入收藏夹？");
                             if (r) {
-                                blacklist.splice(blacklist.indexof(input), 1);
-                                removeFromBlacklist(input);
+                                CONFIG_MANAGER.blacklist.remove(input);
                                 $("#blacklist table a[href='" + input + "']").parent().parent().remove();
-                                addToFavourites(input);
+                                save("favourites", input);
                             }
                         }
                         else {
-                           addToFavourites(input); 
+                            save("favourites", input);
                         }
                     }
                 }
-                if ($(this).hasclass("clear")) {
+                if ($(this).hasClass("clear")) {
                     var r = confirm("你确认要清空收藏夹吗？");
                     if (r) {
                         CONFIG_MANAGER.favourites.clear();
@@ -177,18 +181,20 @@ $(function() {
                 }
                 break;
             case "keywords":
-                if ($(this).hasclass("append")) {
+                if ($(this).hasClass("append")) {
                     if (input.length > 0) {
                         var input = input.split(/\s+/);
-                        for (var i in input) {
-                            if (CONFIG_MANAGER.keywords.data.indexof(input[i]) >= 0) {
-                               input.splice(i, 1); 
+                        var tmp = input;
+                        for (var i in tmp) {
+                            if (CONFIG_MANAGER.keywords.data.indexOf(tmp[i]) >= 0) {
+                               input.splice(input.indexOf(tmp[i]), 1); 
                             }
                         }
+                        CONFIG_MANAGER.keywords.append(input);
                         addToKeywords(input);
                     }
                 }
-                if ($(this).hasclass("clear")) {
+                if ($(this).hasClass("clear")) {
                     var r = confirm("你确认要清空屏蔽关键词列表吗？");
                     if (r) {
                         CONFIG_MANAGER.keywords.clear();
@@ -200,20 +206,19 @@ $(function() {
                 break;
         }
 
-        ppp.find("input").removeattr("value");
+        ppp.find("input").removeAttr("value");
     });
 
     $(":checkbox").change(function() {
         var val = ($(this).is(":checked") ? 1 : 0);
-
         switch ($(this).attr("name")) {
             case "autoclear":
-                _set_autoclear(val);        
+                CONFIG_MANAGER.autoclear.set(val);
                 autoclear = val;
                 break;
             case "autoextend":
-                _set_autoextend(val);
-                autoextend= val;
+                CONFIG_MANAGER.autoextend.set(val);
+                autoextend = val;
                 break;
             default:
                 break;

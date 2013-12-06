@@ -20,7 +20,6 @@ $(document).ready(function(){
                 refresh(response.data);
                 break;
             default:
-                console.log(response.type);
                 break;
         }
     });

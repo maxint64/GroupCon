@@ -50,6 +50,11 @@ Property.prototype.clear = function() {
     chrome.extension.sendMessage(new ConfigMessage(this.name, "clear"));
 };
 
+Property.prototype.set = function(data) {
+    this.data = data;
+    chrome.extension.sendMessage(new ConfigMessage(this.name, "set", data));
+}
+
 function ConfigManager() {
     chrome.extension.sendMessage(new Message("all"));
 }

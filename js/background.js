@@ -69,7 +69,7 @@ $(function() {
             CONFIG.removeItem("favourites", url);
         },
         clear: function() {
-            CONFIG.setItem("favourites", []);
+            CONFIG.setItem("favourites", -1);
         },
     };
 
@@ -81,7 +81,7 @@ $(function() {
             CONFIG.removeItem("blacklist", url);
         },
         clear: function() {
-            CONFIG.setItem("blacklist", []);
+            CONFIG.setItem("blacklist", -1);
         },
     };
 
@@ -93,19 +93,19 @@ $(function() {
             CONFIG.removeItem("keywords", words);
         },
         clear: function() {
-            CONFIG.setItem("keywords", []);
+            CONFIG.setItem("keywords", -1);
         },
     };
 
     Config.prototype.autoclear = {
         set: function(value) {
-            CONFIG.setItem("autoextend", value);
+            CONFIG.setItem("autoclear", value);
         },
     };
 
     Config.prototype.autoextend = {
         set: function(value) {
-            CONFIG.setItem("autoclear", value);
+            CONFIG.setItem("autoextend", value);
         },
     };
 
