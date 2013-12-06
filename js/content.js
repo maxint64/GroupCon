@@ -31,28 +31,32 @@ $(document).ready(function(){
         tr += "<td class='td-time' nowrap='nowrap'></td><td></td></tr>";
 
         for (var index in data) {
-            var topicObj = data[index];
-            var new_tr = $(tr); 
-            var a = $("<a></a>");
+            var topic = data[index];
+            if (topic.error_code) {
+                continue;
+            }
+            else {
+                var a = $("<a></a>");
+                a.attr("href", topic.url);
+                a.attr("title", topic.title);
+                a.text(trunc(topic.topic, truncated_title_length));
 
-            a.attr("href", topicObj.url);
-            a.attr("title", topicObj.title);
-            a.text(trunc(topicObj.topic, truncated_title_length));
-
-            if (! (topicObj instanceof ErrorTopic)) {
+                var new_tr = $(tr); 
                 new_tr.find(".td-subject").append(a);
                 a.before(icon_rheart + " " + icon_trash + " ");
-                new_tr.find(".td-reply").text(topicObj.replyNumber+ "回应");
-                new_tr.find(".td-time").attr("title", topicObj.lastReplyTime);
-                new_tr.find(".td-time").text(topicObj.formatedLastReplyTime);
-                a = $("<a></a>");
-                a.attr("href", topicObj.groupUrl);
-                a.text(trunc(topicObj.groupName, truncated_groupname_length));
-                new_tr.find("td:last").append(a);
-            }
+                new_tr.find(".td-reply").text(topic.replyNumber+ "回应");
+                new_tr.find(".td-time").attr("title", topic.lastReplyTime);
+                new_tr.find(".td-time").text(topic.formatedLastReplyTime);
 
-            new_tr.css("display", (extend ? "table-row" : "none"));
-            _top(new_tr);
+                a = $("<a></a>");
+                a.attr("href", topic.groupUrl);
+                a.text(trunc(topic.groupName, truncated_groupname_length));
+
+                new_tr.find("td:last").append(a);
+                new_tr.css("display", (extend ? "table-row" : "none"));
+
+                _top(new_tr);
+            }
         }
         
         var btn = $("img.loadgif").parent();
@@ -61,20 +65,20 @@ $(document).ready(function(){
 
         $("i.icon-trash").click(function() {
             var pp = $(this).parent().parent();
-            if (pp.hasClass("like")) {
-                removeFromLike(pp);
+            if (pp.hasClass("favourites")) {
+                removeFromFavourites(pp);
             }
-            addToBlaclist(pp);
+            addToBlacklist(pp);
         });
 
         $("i.icon-heart").click(function() {
             var pp = $(this).parent().parent();
-            addToFavorites(pp);
+            addToFavourites(pp);
         });
 
         $("i.icon-rheart").click(function() {
             var pp = $(this).parent().parent();
-            removeFromFavorites(pp);
+            removeFromFavourites(pp);
             pp.remove();
         });
     };
@@ -110,18 +114,18 @@ $(document).ready(function(){
         $(".head-nav").append(cog);
 
         _top = function(e) {
-            e.addClass("info like");
+            e.addClass("info favourites");
             e.css("display", (extend ? "table-row" : "none"));
             $("tr.pl:first").after(e);
         };
         
-        addToBlaclist = function(e) {
+        addToBlacklist = function(e) {
             var url = e.find("td.td-subject a").attr("href");
             CONFIG_MANAGER.blacklist.append([url]);
             e.remove();
         };
 
-        addToFavorites = function(e) {
+        addToFavourites = function(e) {
             var url = e.find("td.td-subject a").attr("href");
             CONFIG_MANAGER.favourites.append([url]);
             var i = e.find("td.td-subject i.icon-heart");
@@ -130,14 +134,14 @@ $(document).ready(function(){
 
             $("i.icon-rheart").click(function() {
                 var pp = $(this).parent().parent();
-                removeFromFavorites(pp);
+                removeFromFavourites(pp);
                 pp.remove();
             });
 
             _top(e);
         };
 
-        removeFromFavorites = function(e) {
+        removeFromFavourites = function(e) {
             var url = e.find("td.td-subject a").attr("href");
             CONFIG_MANAGER.favourites.remove([url]);
         };
@@ -145,13 +149,13 @@ $(document).ready(function(){
         $("tr.pl.control").click(function() {
             var i = $(this).find("i");
             if (i.hasClass("icon-chevron-up")) {
-                $("tr.pl.like").css("display", "none");
+                $("tr.pl.favourites").css("display", "none");
                 i.removeClass("icon-chevron-up");
                 i.addClass("icon-chevron-down");
                 extend = 0;
             }
             else {
-                $("tr.pl.like").css("display", "table-row");
+                $("tr.pl.favourites").css("display", "table-row");
                 i.removeClass("icon-chevron-down");
                 i.addClass("icon-chevron-up");
                 extend = 1;
