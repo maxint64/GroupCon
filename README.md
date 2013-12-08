@@ -11,5 +11,5 @@ TODO
 ~~review & redesign & rebuild function code.~~  
 ~~rebuild options page.~~  
 find & fix bug.  
-beautify.  
+~~beautify.~~  
 more test.
