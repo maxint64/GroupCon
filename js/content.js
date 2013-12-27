@@ -161,7 +161,7 @@ $(document).ready(function(){
             }
         });
 
-        $("td.td-subject a").each(function() {
+        $("td.td-subject a.title").each(function() {
             if (! $(this).parent().parent().hasClass("info")) {
                 var href = $(this).attr("href");
                 var title = $(this).attr("title");
